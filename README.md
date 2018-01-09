@@ -16,6 +16,7 @@ Clone from github and run:
 mvn package
 ```
 To run an algorithm with random input you can execute the following classes from the produced jar:
+
 *gr.ntua.cslab.algorithms.(algorithm)*
 
 OR
