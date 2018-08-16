@@ -6,12 +6,12 @@ import java.util.Random;
 
 import gr.ntua.cslab.tools.ScoreLabel;
 
-public class GaussDataGenerator extends DataGenerator 
+public class Zip_GaussDataGenerator extends Zip_DataGenerator 
 {
 	private Random random;
 	private double skeweness = 1;
 
-	public GaussDataGenerator(int count) 
+	public Zip_GaussDataGenerator(int count) 
 	{
 		super(count);
 		this.random = new Random();
@@ -45,24 +45,14 @@ public class GaussDataGenerator extends DataGenerator
 	
 	public static void main(String[] args) 
 	{
-		if (args.length < 1)
+		if (args.length != 3)
 		{
-			System.err.println("I need size of dataset");
+			System.err.println("Three arguments needed: (size) (polarity) (outFile)");
 			System.exit(1);
 		}
-		GaussDataGenerator gen = new GaussDataGenerator(new Integer(args[0]));
-
-		if (args.length < 2)
-		{
-			System.err.println("Zero polarity is used");
-			System.exit(1);
-		} 
-		else 
-		{
-			gen.setSkewenessFactor(new Double(args[1]));
-		}
-			
-		if (args.length > 2) gen.setOutputFile(args[2]);
+		Zip_GaussDataGenerator gen = new Zip_GaussDataGenerator(new Integer(args[0]));
+		gen.setSkewenessFactor(new Double(args[1]));
+		gen.setOutputFile(args[2]);
 		gen.create();
 	}
 }

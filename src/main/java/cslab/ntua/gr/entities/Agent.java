@@ -1,4 +1,4 @@
-package gr.ntua.cslab;
+package gr.ntua.cslab.entities;
 
 import java.io.*;
 import java.util.*;
@@ -10,6 +10,7 @@ public class Agent
     private List<Integer> prefs;
     private int[] inversePrefs;
 
+    // Creates a copy of an existing agent
     public Agent(Agent copy)
     {
         this.n = copy.getN();
@@ -25,6 +26,7 @@ public class Agent
         for (int j = 0; j < n; j++) inversePrefs[j] = old_inversePrefs[j];
     }
 
+    // Creates an agent with random preferences (uniform)
     public Agent(int n, int id, int side)
     {
         this.n = n;
@@ -39,6 +41,7 @@ public class Agent
         for (int j = 0; j < n; j++) inversePrefs[prefs.get(j)] = j;
     }
 
+    // Creates an agent with preferences read from an input file
     public Agent(int n, int id, int side, String lineWithPrefs)
     {
         this.n = n;
@@ -52,7 +55,6 @@ public class Agent
         inversePrefs = new int[n];
         for (int j = 0; j < n; j++) inversePrefs[prefs.get(j)] = j;
     }
-
 
     public int getAgentAt(int index)
     {
@@ -68,6 +70,15 @@ public class Agent
     {
         if (inversePrefs[a] < inversePrefs[b]) return true;
         else return false;
+    }
+
+    public boolean prefers_first(Integer a, int b)
+    {
+        if (a == null) return false;
+        if (b == Integer.MAX_VALUE) return true;
+
+        if (inversePrefs[Integer.valueOf(a)] < inversePrefs[b]) return true;
+        else return false;        
     }
 
     public int getN(){ return n; }

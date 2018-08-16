@@ -4,76 +4,64 @@ import sys
 import os
 import numpy as np
 
-if len(sys.argv) != 3:
-	print "Usage: " + sys.argv[0] + " NumOfOutputs Directory" 
+if len(sys.argv) < 2:
+	print "Usage: " + sys.argv[0] + " (distribution|Distributions)" 
 	sys.exit(1)
 
-n = int(sys.argv[1])
-di = sys.argv[2]
+abbr = {"Uniform" : "U", "Discrete" : "D", "UniformDiscrete" : "UD", "Gauss" : "G" }
 
-fm = open(di + 'mean_output.txt', 'w')
-
-fileNames = []
-
-for i in range(1, n+1):
-	fileNames.append(di + "output" + str(i) + ".txt")
-
-files = []
-lines = []
-
-for fn in fileNames:
-	ftemp = open(fn, 'r')
-	files.append(ftemp)
-
-for fi in files:
-	lines.append(fi.readline())
-while lines[0]:
-
-	if lines[0].startswith("Size="):
-		fm.write(lines[0])
-
-	elif "Time" in lines[0]:
-		times = []
-		rounds = []
-		ECosts = []
-		SEcosts = []
-		RCosts = []
-		MEcosts = []
-		TEcosts = []
-		for line in lines:
-			tokens = line.split()
-			times.append(float(tokens[2]))
-			rounds.append(float(tokens[5]))
-			ECosts.append(float(tokens[7]))
-			SEcosts.append(float(tokens[9]))
-			RCosts.append(float(tokens[11]))
-			MEcosts.append(float(tokens[13]))
-			TEcosts.append(float(tokens[15]))
-
-		mtime = np.mean(times)
-		mrounds = np.mean(rounds)
-		mECost = np.mean(ECosts)
-		mSEcost = np.mean(SEcosts)
-		mRCost = np.mean(RCosts)
-		mMECost = np.mean(MEcosts)
-		mTECost = np.mean(TEcosts)
-
-		stdtime = np.std(times)
-		stdrounds = np.std(rounds)
-		stdECost = np.std(ECosts)
-		stdSEcost = np.std(SEcosts)
-		stdRCost = np.std(RCosts)
-		stdMEcost = np.std(MEcosts)
-		stdTEcost = np.std(TEcosts)
-
-		fm.write(tokens[0] + " Time= "+str(mtime)+" secs Rounds= "+str(mrounds)+ " EgalitarianCost= "+str(mECost)+" SexEqualityCost= "+str(mSEcost)+" RegretCost= "+str(mRCost)+" MaritalEqualityCost= "+str(mMECost)+" TotalitarianEqualityCost= "+str(mTECost)+"\n")
+for d in sys.argv[1:]:
 	
-	i = 0
-	for fi in files:
-		lines[i] = fi.readline()
-		i = i + 1
+	print(d + ":")
+	fm = open("../outputs/" + abbr[d] + 'mean', 'w')
 
-for fi in files:
-	fi.close();
+	for file in os.listdir("../outputs"):
 
-fm.close();
+		if file.startswith("out" + abbr[d] + "_"):
+
+			tokens = file.split("_")
+			size = int(tokens[1])
+			print("\tn = " + str(size) + ":")
+
+			f = open("../outputs/" + file, 'r')
+			counters = {}
+			times = {}
+			ECosts = {}
+			SECosts = {}
+			RCosts = {}
+
+			line = f.readline()
+			while line:
+
+				tokens = line.split(":")
+				impl_name = tokens[0]
+				tokens = line.split()
+
+				if counters.has_key(impl_name):
+					counters[impl_name] = counters[impl_name] + 1
+					times[impl_name] = times[impl_name] + float(tokens[2])
+					ECosts[impl_name] = ECosts[impl_name] + float(tokens[7])
+					SECosts[impl_name] = SECosts[impl_name] + float(tokens[9])
+					RCosts[impl_name] = RCosts[impl_name] + float(tokens[11])
+				else:
+					counters[impl_name] = 1
+					times[impl_name] = float(tokens[2])
+					ECosts[impl_name] = float(tokens[7])
+					SECosts[impl_name] = float(tokens[9])
+					RCosts[impl_name] = float(tokens[11])
+
+				line = f.readline()
+
+			for impl in counters:
+				print("\t\t" + str(impl) + ": " + str(counters[impl]) + " instances")
+				times[impl] = times[impl] / counters[impl]
+				ECosts[impl] = ECosts[impl] / counters[impl]
+				SECosts[impl] = SECosts[impl] / counters[impl]
+				RCosts[impl] = RCosts[impl] / counters[impl]
+
+				fm.write("Size= " + str(size) + "\n")
+				fm.write(impl + ": Time= "+str(times[impl])+" secs Rounds= 0 EgalitarianCost= "+str(ECosts[impl])+" SexEqualityCost= "+str(SECosts[impl])+" RegretCost= "+str(RCosts[impl])+"\n")
+
+			f.close()
+
+	fm.close()

@@ -8,20 +8,17 @@ import gr.ntua.cslab.entities.Marriage;
 import gr.ntua.cslab.entities.Agent;
 import gr.ntua.cslab.tools.Metrics;
 
-public class GS_MaleOpt extends Abstract_SM_Algorithm
+public class Swing extends Abstract_SM_Algorithm
 {
-    private int[] kappa;
-    private int[][] married;
-    private Stack<Integer> singles;
-    private int active_proposer;
+    private int[][] kappa, married;
 
-    public GS_MaleOpt(int n, String menFileName, String womenFileName)
+    public Swing(int n, String menFileName, String womenFileName)
     {
-        super(n, menFileName, womenFileName);
+    	super(n, menFileName, womenFileName);
     }
 
     // Constructor for when agents are available
-    public GS_MaleOpt(int n, Agent[][] agents)
+    public Swing(int n, Agent[][] agents)
     {
         super(n, agents);
     }
@@ -31,26 +28,21 @@ public class GS_MaleOpt extends Abstract_SM_Algorithm
         long startTime = System.nanoTime();
 
         // Initialize
-        kappa = new int[n];
+        kappa = new int[2][n];
         married = new int[2][n];  
         for (int i = 0; i < n; i++)
         {
             married[0][i] = Integer.MAX_VALUE;
             married[1][i] = Integer.MAX_VALUE;
         } 
-        singles = new Stack<Integer>();
-        for (int i = 0; i < n; i++) singles.push(i); 
+    	int side;
 
-        active_proposer = singles.pop();
-        // Propose
-    	while (true)
+        // Propose     
+    	while (!terminate())
     	{
-            propose(active_proposer);
-            if (active_proposer == -1)
-            {
-                if (singles.isEmpty()) break;
-                else active_proposer = singles.pop();
-            }
+    		side = pickProposers(rounds);
+    		for (int p = 0; p < n; p++) propose(p, side);    
+            rounds++;
     	}
 
         long endTime = System.nanoTime();
@@ -61,42 +53,57 @@ public class GS_MaleOpt extends Abstract_SM_Algorithm
         return result;
     }
 
-    // Returns true if a proposal was issued, false otherwise
-    private void propose(int proposer)
+    private boolean terminate()
     {
-        int proposeToIndex = kappa[proposer];
-        if (married[0][proposer] == Integer.MAX_VALUE)
-        {
-            // Wants to propose
-            int acceptor = agents[0][proposer].getAgentAt(proposeToIndex);
-            if (evaluate(acceptor, proposer)) married[0][proposer] = proposeToIndex;
-            else kappa[proposer]++;
-        }
+    	for (int i = 0; i < n; i++)
+    	{
+    		if (married[0][i] == Integer.MAX_VALUE) return false;
+    	}
+		return true;
     }
 
-    // Returns true if acceptor agrees to marry proposer
-    private boolean evaluate(int acceptor, int proposer)
+    private int pickProposers(long r)
     {
-        int proposerRank = agents[1][acceptor].getRankOf(proposer);
-        int marriedToIndex = married[1][acceptor];
-        if (marriedToIndex > proposerRank)
+    	if (r % 2 == 0) return 0;
+        else return 1;
+    }
+
+    private void propose(int proposer, int proposerSide)
+    {
+        int acceptor, divorced, proposerRank;
+        int acceptorSide = flip(proposerSide);
+        for (int i = 0; i <= kappa[proposerSide][proposer]; i++)
         {
-            // Break up with old and update the active proposer
-            if (marriedToIndex != Integer.MAX_VALUE)
+            acceptor = agents[proposerSide][proposer].getAgentAt(i);
+            proposerRank = agents[acceptorSide][acceptor].getRankOf(proposer);
+            if (proposerRank <= kappa[acceptorSide][acceptor])
             {
-                int old = agents[1][acceptor].getAgentAt(marriedToIndex);
-                married[0][old] = Integer.MAX_VALUE;    
-                active_proposer = old;            
+                // accepts
+                if (married[proposerSide][proposer] != Integer.MAX_VALUE)
+                {
+                    divorced = agents[proposerSide][proposer].getAgentAt(married[proposerSide][proposer]);
+                    married[acceptorSide][divorced] = Integer.MAX_VALUE;
+                    kappa[acceptorSide][divorced] = agents[acceptorSide][divorced].getRankOf(proposer) + 1;
+                }
+                if (married[acceptorSide][acceptor] != Integer.MAX_VALUE)
+                {
+                    divorced = agents[acceptorSide][acceptor].getAgentAt(married[acceptorSide][acceptor]);
+                    married[proposerSide][divorced] = Integer.MAX_VALUE;
+                    kappa[proposerSide][divorced] = agents[proposerSide][divorced].getRankOf(acceptor) + 1;
+                }
+                married[proposerSide][proposer] = i;
+                kappa[proposerSide][proposer] = i - 1;
+                married[acceptorSide][acceptor] = proposerRank;
+                kappa[acceptorSide][acceptor] = proposerRank - 1;
             }
-            else
-            {
-                active_proposer = -1;
-            }            
-            //Engage with new
-            married[1][acceptor] = proposerRank;            
-            return true;
         }
-        else return false;
+        if (married[proposerSide][proposer] == Integer.MAX_VALUE && kappa[proposerSide][proposer] < (n - 1)) 
+            kappa[proposerSide][proposer]++;
+    }
+
+    private int flip(int side)
+    {
+    	return side^1;
     }
 
     private static String getName()
@@ -110,7 +117,7 @@ public class GS_MaleOpt extends Abstract_SM_Algorithm
         String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
         return className.substring(className.lastIndexOf('.') + 1);
     }
-    
+
     public static void main(String args[]) 
     {
         // Parse the command line
@@ -154,10 +161,10 @@ public class GS_MaleOpt extends Abstract_SM_Algorithm
         if (cmd.hasOption("verify")) v = true;
         else v = false;
 
-        Abstract_SM_Algorithm smp = new GS_MaleOpt(n, menFile, womenFile);
+        Abstract_SM_Algorithm smp = new Swing(n, menFile, womenFile);
         Marriage matching = smp.match();
         Metrics smpMetrics = new Metrics(smp, matching, getFinalName());
-        if (v) smpMetrics.perform_checks(); 
+        if (v) smpMetrics.perform_checks();
         smpMetrics.printPerformance();
     }
 }

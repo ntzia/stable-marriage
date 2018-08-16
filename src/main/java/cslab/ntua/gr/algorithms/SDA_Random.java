@@ -2,26 +2,25 @@ package gr.ntua.cslab.algorithms;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import org.apache.commons.cli.*;
 
-import gr.ntua.cslab.entities.Marriage;
 import gr.ntua.cslab.entities.Agent;
+import gr.ntua.cslab.entities.Marriage;
 import gr.ntua.cslab.tools.Metrics;
 
-public class GS_MaleOpt extends Abstract_SM_Algorithm
+public class SDA_Random extends Abstract_SM_Algorithm
 {
-    private int[] kappa;
-    private int[][] married;
-    private Stack<Integer> singles;
-    private int active_proposer;
+    private int[][] kappa;
+    private boolean[][] married;
 
-    public GS_MaleOpt(int n, String menFileName, String womenFileName)
+    public SDA_Random(int n, String menFileName, String womenFileName)
     {
         super(n, menFileName, womenFileName);
     }
 
     // Constructor for when agents are available
-    public GS_MaleOpt(int n, Agent[][] agents)
+    public SDA_Random(int n, Agent[][] agents)
     {
         super(n, agents);
     }
@@ -31,72 +30,94 @@ public class GS_MaleOpt extends Abstract_SM_Algorithm
         long startTime = System.nanoTime();
 
         // Initialize
-        kappa = new int[n];
-        married = new int[2][n];  
-        for (int i = 0; i < n; i++)
+        kappa = new int[2][n];
+        married = new boolean[2][n];
+        int side, proposer;
+        int proposals = 0;
+     
+        while (true)
         {
-            married[0][i] = Integer.MAX_VALUE;
-            married[1][i] = Integer.MAX_VALUE;
-        } 
-        singles = new Stack<Integer>();
-        for (int i = 0; i < n; i++) singles.push(i); 
-
-        active_proposer = singles.pop();
-        // Propose
-    	while (true)
-    	{
-            propose(active_proposer);
-            if (active_proposer == -1)
+            proposer = pickProposer();
+            if (proposer >= n)
             {
-                if (singles.isEmpty()) break;
-                else active_proposer = singles.pop();
+                side = 1;
+                proposer = proposer - n;
             }
-    	}
+            else
+            {
+                side = 0;
+            }
+            propose_SDA(proposer, side);
+
+            proposals++;
+            if (proposals == n)
+            {
+                proposals = 0;
+                rounds++;
+                if (terminate()) break;
+            }
+        }
 
         long endTime = System.nanoTime();
         long elapsedTime = endTime - startTime;
         time = elapsedTime / 1.0E09;
 
-        Marriage result = new Marriage(n, married);
+        Marriage result = new Marriage(n, kappa);
         return result;
     }
 
-    // Returns true if a proposal was issued, false otherwise
-    private void propose(int proposer)
+    private boolean terminate()
     {
-        int proposeToIndex = kappa[proposer];
-        if (married[0][proposer] == Integer.MAX_VALUE)
+        for (int i = 0; i < n; i++)
+        {
+            if (!married[0][i]) return false;
+        }
+        return true;
+    }
+
+    private int pickProposer()
+    {
+        return ThreadLocalRandom.current().nextInt(0, 2*n);
+    }
+
+    // Returns true if a proposal was issued, false otherwise
+    private void propose_SDA(int proposer, int proposerSide)
+    {
+        int proposeToIndex = kappa[proposerSide][proposer];
+        if (!married[proposerSide][proposer] && proposeToIndex < n)
         {
             // Wants to propose
-            int acceptor = agents[0][proposer].getAgentAt(proposeToIndex);
-            if (evaluate(acceptor, proposer)) married[0][proposer] = proposeToIndex;
-            else kappa[proposer]++;
+            int acceptor = agents[proposerSide][proposer].getAgentAt(proposeToIndex);
+            if (evaluate_SDA(acceptor, proposer, flip(proposerSide))) married[proposerSide][proposer] = true;
+            else kappa[proposerSide][proposer]++;
         }
     }
 
     // Returns true if acceptor agrees to marry proposer
-    private boolean evaluate(int acceptor, int proposer)
+    private boolean evaluate_SDA(int acceptor, int proposer, int acceptorSide)
     {
-        int proposerRank = agents[1][acceptor].getRankOf(proposer);
-        int marriedToIndex = married[1][acceptor];
-        if (marriedToIndex > proposerRank)
+        int proposerRank = agents[acceptorSide][acceptor].getRankOf(proposer);
+        int proposeToIndex = kappa[acceptorSide][acceptor];
+        if (proposeToIndex >= proposerRank)
         {
-            // Break up with old and update the active proposer
-            if (marriedToIndex != Integer.MAX_VALUE)
+            // Break up with old
+            if (married[acceptorSide][acceptor])
             {
-                int old = agents[1][acceptor].getAgentAt(marriedToIndex);
-                married[0][old] = Integer.MAX_VALUE;    
-                active_proposer = old;            
-            }
-            else
-            {
-                active_proposer = -1;
+                int old = agents[acceptorSide][acceptor].getAgentAt(proposeToIndex);
+                married[flip(acceptorSide)][old] = false;                
             }            
             //Engage with new
-            married[1][acceptor] = proposerRank;            
+            married[acceptorSide][acceptor] = true;
+            // Boost confidence if needed
+            if (proposeToIndex > proposerRank) kappa[acceptorSide][acceptor] = proposerRank;            
             return true;
         }
         else return false;
+    }
+
+    private int flip(int side)
+    {
+        return side^1;
     }
 
     private static String getName()
@@ -110,7 +131,7 @@ public class GS_MaleOpt extends Abstract_SM_Algorithm
         String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
         return className.substring(className.lastIndexOf('.') + 1);
     }
-    
+
     public static void main(String args[]) 
     {
         // Parse the command line
@@ -154,10 +175,10 @@ public class GS_MaleOpt extends Abstract_SM_Algorithm
         if (cmd.hasOption("verify")) v = true;
         else v = false;
 
-        Abstract_SM_Algorithm smp = new GS_MaleOpt(n, menFile, womenFile);
+        Abstract_SM_Algorithm smp = new SDA_Random(n, menFile, womenFile);
         Marriage matching = smp.match();
         Metrics smpMetrics = new Metrics(smp, matching, getFinalName());
-        if (v) smpMetrics.perform_checks(); 
+        if (v) smpMetrics.perform_checks();
         smpMetrics.printPerformance();
     }
 }

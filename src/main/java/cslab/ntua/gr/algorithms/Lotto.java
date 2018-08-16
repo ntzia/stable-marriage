@@ -3,9 +3,11 @@ package gr.ntua.cslab.algorithms;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import org.apache.commons.cli.*;
 
-import gr.ntua.cslab.Agent;
-import gr.ntua.cslab.Metrics;
+import gr.ntua.cslab.entities.Agent;
+import gr.ntua.cslab.entities.Marriage;
+import gr.ntua.cslab.tools.Metrics;
 
 public class Lotto extends Abstract_SM_Algorithm
 {
@@ -17,31 +19,29 @@ public class Lotto extends Abstract_SM_Algorithm
     public Lotto(int n, String menFileName, String womenFileName)
     {
     	super(n, menFileName, womenFileName);
+    }
 
+    // Constructor for when agents are available
+    public Lotto(int n, Agent[][] agents)
+    {
+        super(n, agents);
+    }
+
+    public Marriage match()
+    {
+        long startTime = System.nanoTime();
+
+        // Initialize
+        int rand, p, couples_to_still_match, spouse;
         married = new int[2][n]; 
         startFrom = new int[2][n]; 
         endAt = new int[2][n];
         deleted = new boolean[2][n][n]; 
-
-        for (int i = 0; i < n; i++)
-        {
-            for (int j = 0; j < n; j++)
-            {
-                deleted[0][j][i] = false;
-                deleted[1][j][i] = false;
-            }
-        }
-
         for (int i = 0; i < n; i++)
         {
             endAt[0][i] = n-1;
             endAt[1][i] = n-1;
         }
-    }
-
-    public int[] match()
-    {
-        long startTime = System.nanoTime();
         int[] matching = new int[n];
 
         // Initial refining (achieved with Extended GS algorithm)
@@ -60,7 +60,6 @@ public class Lotto extends Abstract_SM_Algorithm
             unmatched_women.add(i);
         }
 
-        int rand, p, couples_to_still_match, spouse;
         // Begin proposals
         for (int i = 0; i < n; i++)
         {
@@ -100,14 +99,21 @@ public class Lotto extends Abstract_SM_Algorithm
         long elapsedTime = endTime - startTime;
         time = elapsedTime / 1.0E09;
 
-        return matching;
+        int[][] final_indices = new int[2][n];
+        for (int i = 0; i < n; i++)
+        {
+            final_indices[0][i] = first_valid_index(i, 0);
+            final_indices[1][i] = first_valid_index(i, 1);
+        }      
+        Marriage result = new Marriage(n, final_indices);
+        return result;
     }
 
+    // Reduces preference lists according to the GS algorithm in which side(param) proposes
     private void extended_gs(int side)
     {
         int p, r, previous_spouse;
         boolean done;
-
         for (int i = 0; i < n; i++)
         {
             married[0][i] = Integer.MAX_VALUE;
@@ -148,7 +154,6 @@ public class Lotto extends Abstract_SM_Algorithm
         for (i = index_of_b + 1; i <= last_valid_index(a, sideA); i++)
         {
             deleted[sideA][a][i] = true;
-
             other = agents[sideA][a].getAgentAt(i);
             index_of_a = agents[flip(sideA)][other].getRankOf(a);
             deleted[flip(sideA)][other][index_of_a] = true;
@@ -194,46 +199,59 @@ public class Lotto extends Abstract_SM_Algorithm
         return className;
     }
 
-    private static void usage()
+    private static String getFinalName()
     {
-        System.err.println("Proper Usage: java " + getName() + " n (MenFile WomenFile)");
-        System.exit(1);
+        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
+        return className.substring(className.lastIndexOf('.') + 1);
     }
 
     public static void main(String args[]) 
     {
-        int n = 0;
-        String menFile = null;
-        String womenFile = null;
+        // Parse the command line
+        Options options = new Options();
 
-        if (args.length != 1 && args.length != 3) usage();
+        Option size = new Option("n", "size", true, "size of instance");
+        size.setRequired(true);
+        options.addOption(size);
 
-        try 
+        Option men = new Option("m", "men", true, "men preferences input file");
+        men.setRequired(false);
+        options.addOption(men);
+
+        Option women = new Option("w", "women", true, "women preferences input file");
+        women.setRequired(false);
+        options.addOption(women);
+
+        Option verify = new Option("v", "verify", false, "verify result");
+        verify.setRequired(false);
+        options.addOption(verify);
+
+        CommandLineParser parser = new DefaultParser();
+        HelpFormatter formatter = new HelpFormatter();
+        CommandLine cmd = null;
+
+        try
         {
-            n = Integer.parseInt(args[0]);
+            cmd = parser.parse(options, args);
         } 
-        catch (Exception e) 
+        catch (ParseException e) 
         {
-            usage();
+            System.err.println(e.getMessage());
+            formatter.printHelp(getName(), options);
+            System.exit(1);
         }
 
-        System.out.println("Size= " + n);
-
-        if (args.length == 3)
-        {
-            menFile = args[1];
-            womenFile = args[2];
-        } 
-
+        int n = Integer.parseInt(cmd.getOptionValue("size"));
+        String menFile = cmd.getOptionValue("men");
+        String womenFile = cmd.getOptionValue("women");
+        boolean v;
+        if (cmd.hasOption("verify")) v = true;
+        else v = false;
 
         Abstract_SM_Algorithm smp = new Lotto(n, menFile, womenFile);
-        int[] matching = smp.match();
-        Metrics smpMetrics = new Metrics(smp, matching, getName());
+        Marriage matching = smp.match();
+        Metrics smpMetrics = new Metrics(smp, matching, getFinalName());
+        if (v) smpMetrics.perform_checks();    
         smpMetrics.printPerformance();
-/*
-        if (!smpMetrics.checkPerfectMatching()) System.err.println("Error! Matching not perfect!");
-        int bagents = smpMetrics.blockingAgents();
-        if (bagents != 0) System.err.println("Error! Terminated with " + bagents + " blocking agents!");    
-*/       
     }
 }

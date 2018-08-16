@@ -2,23 +2,24 @@ package gr.ntua.cslab.algorithms;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import org.apache.commons.cli.*;
 
 import gr.ntua.cslab.entities.Marriage;
 import gr.ntua.cslab.entities.Agent;
 import gr.ntua.cslab.tools.Metrics;
 
-public class ESMA extends Abstract_SM_Algorithm
+public class BestResponseDynamics extends Abstract_SM_Algorithm
 {
-    private int[][] kappa, married;
+    private int[][] married;
 
-    public ESMA(int n, String menFileName, String womenFileName)
+    public BestResponseDynamics(int n, String menFileName, String womenFileName)
     {
     	super(n, menFileName, womenFileName);
     }
 
     // Constructor for when agents are available
-    public ESMA(int n, Agent[][] agents)
+    public BestResponseDynamics(int n, Agent[][] agents)
     {
         super(n, agents);
     }
@@ -28,22 +29,65 @@ public class ESMA extends Abstract_SM_Algorithm
         long startTime = System.nanoTime();
 
         // Initialize
-        kappa = new int[2][n];
+        boolean found_bp;
         married = new int[2][n];  
+    	int side, other_side, r, divorced, proposerRank;
+        List<Integer> proposers = new ArrayList<Integer>();
+        for (int i = 0; i < n; i++) proposers.add(i);
+        List<Integer> indices = new ArrayList<Integer>();
+        for (int i = 0; i < n; i++) indices.add(i);
+
+        // Generate a random matching
+        java.util.Collections.shuffle(proposers);
         for (int i = 0; i < n; i++)
         {
-            married[0][i] = Integer.MAX_VALUE;
-            married[1][i] = Integer.MAX_VALUE;
-        } 
-    	int side;
+            // proposers(i) marries i
+            married[0][proposers.get(i)] = agents[0][proposers.get(i)].getRankOf(i);
+            married[1][i] = agents[1][i].getRankOf(proposers.get(i));
+        }
 
-        // Propose     
-    	while (!terminate())
-    	{
-    		rounds++;
-    		side = pickProposers(rounds);
-    		for (int i = 0; i < n; i++) propose(i, side);
-    	}
+        // Active side = females
+        side = 1;
+        other_side = 0;
+
+        // Start
+        while (true)
+        {
+            found_bp = false;
+            // Randomize order of agents to check for blocking pairs
+            java.util.Collections.shuffle(proposers);
+            for (int p : proposers)
+            {
+                // Check indices from first to last (best first)
+                for (int index = 0; index < n; index++)
+                {
+                    // Check for blocking pair here
+                    r = agents[side][p].getAgentAt(index);
+                    proposerRank = agents[other_side][r].getRankOf(p);
+                    if (married[side][p] > index && married[other_side][r] > proposerRank)
+                    {
+                        // p and r form a blocking pair
+                        if (married[side][p] != Integer.MAX_VALUE)
+                        {
+                            divorced = agents[side][p].getAgentAt(married[side][p]);
+                            married[other_side][divorced] = Integer.MAX_VALUE;
+                        }
+                        if (married[other_side][r] != Integer.MAX_VALUE)
+                        {
+                            divorced = agents[other_side][r].getAgentAt(married[other_side][r]);
+                            married[side][divorced] = Integer.MAX_VALUE;
+                        }
+                        married[side][p] = index;
+                        married[other_side][r] = proposerRank;
+                        found_bp = true;
+                        break;
+                    }
+                }
+                if (found_bp) break;
+            }
+            // If no blocking pairs found, the solution is stable
+            if (!found_bp) break;
+        }
 
         long endTime = System.nanoTime();
         long elapsedTime = endTime - startTime;
@@ -51,66 +95,6 @@ public class ESMA extends Abstract_SM_Algorithm
 
         Marriage result = new Marriage(n, married);
         return result;
-    }
-
-    private boolean terminate()
-    {
-    	for (int i = 0; i < n; i++)
-    	{
-    		if (kappa[0][i] < married[0][i]) return false;
-    		if (kappa[1][i] < married[1][i]) return false;
-    	}
-		return true;
-    }
-
-    private int pickProposers(long r)
-    {
-    	if ((Math.sin(r*r)>0)) return 0;
-        else return 1;
-    }
-
-    private void propose(int proposer, int proposerSide)
-    {
-        int proposeToIndex = kappa[proposerSide][proposer];
-        int marriedToIndex = married[proposerSide][proposer];
-    	if (proposeToIndex < marriedToIndex && proposeToIndex < n)
-    	{
-            // Wants to propose
-    		int acceptor = agents[proposerSide][proposer].getAgentAt(proposeToIndex);
-    		if (evaluate(acceptor, proposer, flip(proposerSide)))
-    		{
-    			// Break up with old
-    			if (marriedToIndex != Integer.MAX_VALUE)
-    			{
-    				int old = agents[proposerSide][proposer].getAgentAt(marriedToIndex);
-    				married[flip(proposerSide)][old] = Integer.MAX_VALUE;		
-    			}
-    			//Engage with new
-    			married[proposerSide][proposer] = proposeToIndex;
-    		}
-    		else kappa[proposerSide][proposer]++;
-    	}
-    }
-
-    private boolean evaluate(int acceptor, int proposer, int acceptorSide)
-    {
-        int proposerRank = agents[acceptorSide][acceptor].getRankOf(proposer);
-        int marriedToIndex = married[acceptorSide][acceptor];
-    	if (marriedToIndex > proposerRank)
-    	{
-    		// Break up with old
-    		if (marriedToIndex != Integer.MAX_VALUE)
-    		{
-                int old = agents[acceptorSide][acceptor].getAgentAt(marriedToIndex);
-                married[flip(acceptorSide)][old] = Integer.MAX_VALUE;   				
-    		}
-    		//Engage with new
-    		married[acceptorSide][acceptor] = proposerRank;
-            // Boost confidence if needed
-    		if (kappa[acceptorSide][acceptor] > proposerRank) kappa[acceptorSide][acceptor] = proposerRank + 1;            
-    		return true;
-    	}
-    	else return false;
     }
 
     private int flip(int side)
@@ -173,7 +157,7 @@ public class ESMA extends Abstract_SM_Algorithm
         if (cmd.hasOption("verify")) v = true;
         else v = false;
 
-        Abstract_SM_Algorithm smp = new ESMA(n, menFile, womenFile);
+        Abstract_SM_Algorithm smp = new BestResponseDynamics(n, menFile, womenFile);
         Marriage matching = smp.match();
         Metrics smpMetrics = new Metrics(smp, matching, getFinalName());
         if (v) smpMetrics.perform_checks();
