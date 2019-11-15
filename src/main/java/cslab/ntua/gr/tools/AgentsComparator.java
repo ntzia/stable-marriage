@@ -1,9 +1,8 @@
-package gr.ntua.cslab.tools;
+package cslab.ntua.gr.tools;
 
-import java.io.*;
-import java.util.*;
+import java.util.Comparator;
 
-import gr.ntua.cslab.entities.Agent;
+import cslab.ntua.gr.entities.Agent;
 
 public class AgentsComparator implements Comparator<Integer>
 {

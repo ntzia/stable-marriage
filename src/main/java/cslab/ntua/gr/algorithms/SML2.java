@@ -1,12 +1,19 @@
-package gr.ntua.cslab.algorithms;
+package cslab.ntua.gr.algorithms;
 
-import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import org.apache.commons.cli.*;
 
-import gr.ntua.cslab.entities.Agent;
-import gr.ntua.cslab.entities.Marriage;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import cslab.ntua.gr.entities.Agent;
+import cslab.ntua.gr.entities.Marriage;
 import gr.ntua.cslab.tools.Metrics;
 
 public class SML2 extends Abstract_SM_Algorithm
@@ -32,11 +39,11 @@ public class SML2 extends Abstract_SM_Algorithm
         long startTime = System.nanoTime();
 
         // Initialize
-        int a1, a2, neighbour_cnt, chosen, counter, min_bp;
+        int a1, a2, neighbour_cnt, chosen, min_bp;
         int side = 0;
         int[][] neighbour_m, best_m;
         married = new int[2][n];
-        List<Integer> undominated_pairs, bp_list;
+        List<Integer> undominated_pairs;
         // Generate a random matching
         List<Integer> proposers = new ArrayList<Integer>();
         for (int i = 0; i < n; i++) proposers.add(i);
@@ -218,20 +225,9 @@ public class SML2 extends Abstract_SM_Algorithm
         return m;     
     }
 
-    private int flip(int side)
-    {
-    	return side^1;
-    }
-
-    private static String getName()
-    {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
-        return className;
-    }
-
     private static String getFinalName(double prob)
     {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
+        String className = getName();
         return className.substring(className.lastIndexOf('.') + 1) + "_" + prob;
     }
 

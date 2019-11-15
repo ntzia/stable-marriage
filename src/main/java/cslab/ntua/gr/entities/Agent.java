@@ -1,8 +1,7 @@
-package gr.ntua.cslab.entities;
+package cslab.ntua.gr.entities;
 
-import java.io.*;
-import java.util.*;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Agent
 {

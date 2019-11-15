@@ -1,6 +1,6 @@
-package gr.ntua.cslab.entities;
+package cslab.ntua.gr.entities;
 
-import java.util.*;
+import java.util.ArrayList;
 
 public class Rotation
 {

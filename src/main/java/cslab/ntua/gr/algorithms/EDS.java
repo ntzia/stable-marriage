@@ -1,27 +1,33 @@
-package gr.ntua.cslab.algorithms;
+package cslab.ntua.gr.algorithms;
 
-import java.io.*;
-import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
-import gr.ntua.cslab.entities.Agent;
-import gr.ntua.cslab.entities.Marriage;
+import cslab.ntua.gr.entities.Agent;
+import cslab.ntua.gr.entities.Marriage;
 import gr.ntua.cslab.tools.Metrics;
 
 public class EDS extends Abstract_SM_Algorithm
 {
     private int[][] nIndex, mIndex;
+    private int starting_side;
 
-    public EDS(int n, String menFileName, String womenFileName)
+    public EDS(int n, String menFileName, String womenFileName, int starting_side)
     {
         super(n, menFileName, womenFileName);
+        this.starting_side = starting_side;
     }
 
     // Constructor for when agents are available
-    public EDS(int n, Agent[][] agents)
+    public EDS(int n, Agent[][] agents, int starting_side)
     {
         super(n, agents);
+        this.starting_side = starting_side;
     }
 
     public Marriage match()
@@ -29,8 +35,8 @@ public class EDS extends Abstract_SM_Algorithm
         long startTime = System.nanoTime();
 
         // Initialize
-        int side = 0;
-        boolean idle, cc_increase;
+        int side = starting_side;
+        boolean cc_increase;
         int propose_res;
         nIndex = new int[2][n];
         mIndex = new int[2][n];  
@@ -68,7 +74,7 @@ public class EDS extends Abstract_SM_Algorithm
     // Try proposing with all the proposers at once
     private void stage_1(int proposers_side)
     {
-        int p, propose_res;
+        int propose_res;
         boolean idle;
 
         suspend_discontent(proposers_side);
@@ -128,6 +134,7 @@ public class EDS extends Abstract_SM_Algorithm
         while (!stop); 
     }
 
+/*
     private int compute_cc()
     {
         int partner_marriedToIndex, partner_proposeToIndex, partner;
@@ -151,6 +158,7 @@ public class EDS extends Abstract_SM_Algorithm
 
         return cc;
     }
+*/
 
     private boolean terminate()
     {
@@ -380,21 +388,18 @@ public class EDS extends Abstract_SM_Algorithm
         return answer;
     }
 
-    private int flip(int side)
+    private static String getFinalName(CommandLine cmd)
     {
-        return side^1;
-    }
-
-    private static String getName()
-    {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
-        return className;
-    }
-
-    private static String getFinalName()
-    {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
-        return className.substring(className.lastIndexOf('.') + 1);
+        String className = getName();
+        if (cmd.hasOption("starting_side"))
+        {
+            int starting_side = Integer.parseInt(cmd.getOptionValue("starting_side"));
+            return className.substring(className.lastIndexOf('.') + 1) + "_" + starting_side;
+        }
+        else
+        {
+            return className.substring(className.lastIndexOf('.') + 1);
+        }
     }
 
     public static void main(String args[]) 
@@ -413,6 +418,10 @@ public class EDS extends Abstract_SM_Algorithm
         Option women = new Option("w", "women", true, "women preferences input file");
         women.setRequired(false);
         options.addOption(women);
+
+        Option start_side = new Option("ss", "starting_side", true, "starting side");
+        start_side.setRequired(false);
+        options.addOption(start_side);
 
         Option verify = new Option("v", "verify", false, "verify result");
         verify.setRequired(false);
@@ -436,13 +445,17 @@ public class EDS extends Abstract_SM_Algorithm
         int n = Integer.parseInt(cmd.getOptionValue("size"));
         String menFile = cmd.getOptionValue("men");
         String womenFile = cmd.getOptionValue("women");
+        int starting_side;
+        if (cmd.hasOption("starting_side")) starting_side = Integer.parseInt(cmd.getOptionValue("starting_side"));
+        // By default, randomize the starting side
+        else starting_side = (Math.random() < 0.5)?0:1;
         boolean v;
         if (cmd.hasOption("verify")) v = true;
         else v = false;
 
-        Abstract_SM_Algorithm smp = new EDS(n, menFile, womenFile);
+        Abstract_SM_Algorithm smp = new EDS(n, menFile, womenFile, starting_side);
         Marriage matching = smp.match();
-        Metrics smpMetrics = new Metrics(smp, matching, getFinalName());
+        Metrics smpMetrics = new Metrics(smp, matching, getFinalName(cmd));
         if (v) smpMetrics.perform_checks();
         smpMetrics.printPerformance();
     }

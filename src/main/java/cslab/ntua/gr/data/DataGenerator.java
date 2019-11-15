@@ -1,4 +1,4 @@
-package gr.ntua.cslab.data;
+package cslab.ntua.gr.data;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;

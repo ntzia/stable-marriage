@@ -1,10 +1,14 @@
-package gr.ntua.cslab.entities;
+package cslab.ntua.gr.entities;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 
-import gr.ntua.cslab.algorithms.Abstract_SM_Algorithm;
-import gr.ntua.cslab.algorithms.GS_MaleOpt;
-import gr.ntua.cslab.algorithms.GS_FemaleOpt;
+import cslab.ntua.gr.algorithms.Abstract_SM_Algorithm;
+import cslab.ntua.gr.algorithms.GS_MaleOpt;
 
 public class Flow_Network
 {
@@ -12,12 +16,10 @@ public class Flow_Network
     private ArrayList<Rotation> rotations;
     private Rotation_Poset poset;
     private Map<Rotation,Map<Rotation,Integer>> graph;
-    private Agent[][] agents;
     private Rotation src, dst;
 
-    public Flow_Network(Agent[][] agents, ArrayList<Rotation> rots, Rotation_Poset poset, int[] rotation_weights)
+    public Flow_Network(ArrayList<Rotation> rots, Rotation_Poset poset, int[] rotation_weights)
     {
-        this.agents = agents;
         this.rotations = rots;
         this.poset = poset;
         construct_flow_network(rotation_weights);
@@ -175,15 +177,13 @@ public class Flow_Network
         int n;
         Abstract_SM_Algorithm smp;
         Agent[][] agents;
-        Marriage m;
 
         n = 300;
         smp = new GS_MaleOpt(n, null, null);
         agents = smp.getAgents();
         Rotations rots = new Rotations(n, agents, null, null);
-        m = smp.match();    
         Rotation_Poset poset = new Rotation_Poset(n, agents, 0, rots, null, null);
-        Flow_Network g = new Flow_Network(agents, rots.men_rotations, poset, null);
+        Flow_Network g = new Flow_Network(rots.men_rotations, poset, null);
         g.minCut();
     }
 }

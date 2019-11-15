@@ -1,11 +1,17 @@
-package gr.ntua.cslab.algorithms;
+package cslab.ntua.gr.algorithms;
 
-import java.io.*;
-import java.util.*;
-import org.apache.commons.cli.*;
+import java.util.Stack;
 
-import gr.ntua.cslab.entities.Marriage;
-import gr.ntua.cslab.entities.Agent;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import cslab.ntua.gr.entities.Agent;
+import cslab.ntua.gr.entities.Marriage;
 import gr.ntua.cslab.tools.Metrics;
 
 public class GS_FemaleOpt extends Abstract_SM_Algorithm
@@ -99,15 +105,9 @@ public class GS_FemaleOpt extends Abstract_SM_Algorithm
         else return false;
     }
 
-    private static String getName()
-    {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
-        return className;
-    }
-
     private static String getFinalName()
     {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
+        String className = getName();
         return className.substring(className.lastIndexOf('.') + 1);
     }    
     

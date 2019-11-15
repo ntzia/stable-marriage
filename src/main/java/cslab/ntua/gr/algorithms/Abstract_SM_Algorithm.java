@@ -1,11 +1,16 @@
-package gr.ntua.cslab.algorithms;
+package cslab.ntua.gr.algorithms;
 
-import java.io.*;
-import java.util.zip.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.zip.ZipInputStream;
 
-import gr.ntua.cslab.entities.Marriage;
-import gr.ntua.cslab.entities.Agent;
+import cslab.ntua.gr.entities.Agent;
+import cslab.ntua.gr.entities.Marriage;
 
 public abstract class Abstract_SM_Algorithm
 {
@@ -35,9 +40,7 @@ public abstract class Abstract_SM_Algorithm
         FileReader fr;
         FileInputStream fis;
         BufferedInputStream bis;
-        ZipInputStream zis;
         String sCurrentLine;
-        StringBuilder builder;
         int i;
 
         
@@ -207,6 +210,17 @@ public abstract class Abstract_SM_Algorithm
     }
 
     public abstract Marriage match();
+
+    public int flip(int side)
+    {
+        return side^1;
+    }
+
+    public static String getName()
+    {
+        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
+        return className;
+    }
 
     public Agent[][] getAgents(){ return agents; }
     public int getSize(){ return n; }

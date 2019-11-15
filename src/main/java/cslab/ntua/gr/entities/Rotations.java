@@ -1,12 +1,11 @@
-package gr.ntua.cslab.entities;
+package cslab.ntua.gr.entities;
 
-import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.ArrayList;
+import java.util.Stack;
 
-import gr.ntua.cslab.algorithms.Abstract_SM_Algorithm;
-import gr.ntua.cslab.algorithms.GS_MaleOpt;
-import gr.ntua.cslab.algorithms.GS_FemaleOpt;
-import gr.ntua.cslab.tools.Metrics;
+import cslab.ntua.gr.algorithms.Abstract_SM_Algorithm;
+import cslab.ntua.gr.algorithms.GS_FemaleOpt;
+import cslab.ntua.gr.algorithms.GS_MaleOpt;
 
 public class Rotations
 {
@@ -60,7 +59,7 @@ public class Rotations
     public void find_men_rotations(Marriage maleOptMatching, Marriage femaleOptMatching)
     {
         // Initialize
-        int m, m1, size;
+        int m, m1;
         this.countM = 0;
         if (maleOptMatching == null)
         {
@@ -128,7 +127,7 @@ public class Rotations
     public void find_women_rotations(Marriage maleOptMatching, Marriage femaleOptMatching)
     {
         // Initialize
-        int w, w1, size;
+        int w, w1;
         this.countW = 0;
         if (maleOptMatching == null)
         {

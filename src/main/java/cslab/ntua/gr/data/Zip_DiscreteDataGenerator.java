@@ -1,11 +1,11 @@
-package gr.ntua.cslab.data;
+package cslab.ntua.gr.data;
 
 import java.util.Collections;
 import java.util.LinkedList;
 
 public class Zip_DiscreteDataGenerator extends Zip_DataGenerator 
 {
-	private int hotRegion, coldRegion;
+	private int hotRegion;
 
 	public Zip_DiscreteDataGenerator(int datasetSize) 
 	{
@@ -15,7 +15,6 @@ public class Zip_DiscreteDataGenerator extends Zip_DataGenerator
 	public void setHotRegion(double hotRegionPercentage)
 	{
 		this.hotRegion = (int) (hotRegionPercentage * this.datasetSize);
-		this.coldRegion = this.datasetSize - this.hotRegion;
 	}
 
 	@Override

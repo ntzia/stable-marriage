@@ -1,4 +1,4 @@
-package gr.ntua.cslab.entities;
+package cslab.ntua.gr.entities;
 
 public class Marriage
 {

@@ -1,14 +1,22 @@
-package gr.ntua.cslab.algorithms;
+package cslab.ntua.gr.algorithms;
 
-import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.ThreadLocalRandom;
-import org.apache.commons.cli.*;
 
-import gr.ntua.cslab.entities.Agent;
-import gr.ntua.cslab.entities.Marriage;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import cslab.ntua.gr.entities.Agent;
+import cslab.ntua.gr.entities.Marriage;
 import gr.ntua.cslab.tools.Metrics;
-import gr.ntua.cslab.tools.AgentsComparator;
 
 public class DACC extends Abstract_SM_Algorithm
 {
@@ -17,6 +25,7 @@ public class DACC extends Abstract_SM_Algorithm
     private Stack<Integer> cc;
     private ArrayList<Set<Integer>> appliedTo;
     private String sequence;
+    private int[] costs;
 
     public DACC(int n, String menFileName, String womenFileName, String sequence)
     {
@@ -48,6 +57,9 @@ public class DACC extends Abstract_SM_Algorithm
         cc = new Stack<Integer>();
         appliedTo = new ArrayList<Set<Integer>>();
         for (int i = 0; i < 2 * n; i++) appliedTo.add(new HashSet<Integer>());
+        costs = new int[2];
+        costs[0] = 0;
+        costs[1] = 0;
 
         // Propose
         if (sequence.equals("D"))
@@ -74,7 +86,7 @@ public class DACC extends Abstract_SM_Algorithm
         }
         else if (sequence.equals("R"))
         {
-            side = 0;
+            int proposals = 0;
             while (!terminate())
             {
                 proposer = ThreadLocalRandom.current().nextInt(0, 2*n);
@@ -97,9 +109,77 @@ public class DACC extends Abstract_SM_Algorithm
                     if (married[cc_side][cc_p] != Integer.MAX_VALUE || kappa[cc_side][cc_p] == n) cc.remove(Integer.valueOf(j));
                 } 
                 propose(proposer, side);
+                proposals++;
+                // Check for termination
+                if (proposals >= n)
+                {
+                    proposals = 0;
+                    if (terminate()) break;
+                }
             }
         }
+        /*
+        else if (sequence.equals("SA"))
+        {
+            int proposals = 0;
+            while (true)
+            {
+                // Compensation Chain
+                while (!cc.empty())
+                {
+                    j = cc.peek();
+                    // Decode
+                    if (j < n) {cc_p = j; cc_side = 0;}
+                    else {cc_p = j - n; cc_side = 1;}
+                    propose(cc_p, cc_side);
+                    if (married[cc_side][cc_p] != Integer.MAX_VALUE || kappa[cc_side][cc_p] == n) cc.remove(Integer.valueOf(j));
+                } 
+                // Do one proposal with strong agent
+                proposer = pickProposer();
+                if (proposer >= n)
+                {
+                    side = 1;
+                    proposer = proposer - n;
+                }
+                else
+                {
+                    side = 0;
+                }
+                propose(proposer, side);
 
+                // Check for termination
+                proposals++;
+                if (proposals >= n)
+                {
+                    proposals = 0;
+                    if (terminate()) break;
+                    if (strongSideIdle()) compensate_random_weak();
+                }
+            }
+        }
+        else if (sequence.equals("EO"))
+        {
+            side = 1;
+            while (!terminate())
+            {
+                rounds++;
+                side = flip(side);
+                for (int i = 0; i < n; i++) 
+                {
+                    while (!cc.empty())
+                    {
+                        j = cc.peek();
+                        // Decode
+                        if (j < n) {cc_p = j; cc_side = 0;}
+                        else {cc_p = j - n; cc_side = 1;}
+                        propose(cc_p, cc_side);
+                        if (married[cc_side][cc_p] != Integer.MAX_VALUE || kappa[cc_side][cc_p] == n) cc.remove(Integer.valueOf(j));
+                    } 
+                    propose(i, side);
+                }
+            }            
+        }
+        */
 
         long endTime = System.nanoTime();
         long elapsedTime = endTime - startTime;
@@ -108,6 +188,25 @@ public class DACC extends Abstract_SM_Algorithm
         Marriage result = new Marriage(n, married);
         return result;
     }
+
+    /*
+    private void compensate_random_weak()
+    {
+        int weak_side = flip(pickStrongSide());
+        ArrayList<Integer> weak_actives = new ArrayList<Integer>();
+        for (int i = 0; i < n; i++)    
+        {
+            if (kappa[weak_side][i] < married[weak_side][i])
+            {
+                // Active!
+                weak_actives.add(i + n * weak_side);
+            }
+        }  
+        int randIdx = ThreadLocalRandom.current().nextInt(0, weak_actives.size());
+        cc.push(weak_actives.get(randIdx));
+        return;
+    }
+    */
 
     private boolean terminate()
     {
@@ -118,6 +217,18 @@ public class DACC extends Abstract_SM_Algorithm
         }
         return true;
     }
+
+    /*
+    private boolean strongSideIdle()
+    {
+        int strongSide = pickStrongSide();
+        for (int i = 0; i < n; i++)
+        {
+            if (kappa[strongSide][i] < married[strongSide][i]) return false;
+        }
+        return true;
+    }
+    */
 
     private int pickProposers()
     {
@@ -147,16 +258,18 @@ public class DACC extends Abstract_SM_Algorithm
         return pickStrongSide();
     }  
 
+    /*
+    private int pickProposer()
+    {     
+        int side = pickStrongSide();  
+        int i = ThreadLocalRandom.current().nextInt(0, n);
+        return (i + n * side);
+    }  
+    */
+
     private int pickStrongSide()
     {
-        int menCost = 0;
-        int womenCost = 0;
-        for (int i = 0; i < n; i++)
-        {
-            menCost += kappa[0][i];
-            womenCost += kappa[1][i];
-        }
-        if (menCost >= womenCost) return 1;
+        if (costs[0] >= costs[1]) return 1;
         else return 0;
     }
 
@@ -177,7 +290,12 @@ public class DACC extends Abstract_SM_Algorithm
         // Increase budget of acceptor
         int proposerRank = agents[acceptorSide][acceptor].getRankOf(proposer);
         deleted[acceptorSide][acceptor][proposerRank] = false;
-        if (kappa[acceptorSide][acceptor] > proposerRank) kappa[acceptorSide][acceptor] = proposerRank;
+        if (kappa[acceptorSide][acceptor] > proposerRank) 
+        {
+            costs[acceptorSide] -= kappa[acceptorSide][acceptor];
+            costs[acceptorSide] += proposerRank;
+            kappa[acceptorSide][acceptor] = proposerRank;
+        }
 
         if (married[acceptorSide][acceptor] > proposerRank)
         {
@@ -191,7 +309,9 @@ public class DACC extends Abstract_SM_Algorithm
                 // Remove from budget
                 index_of_p = agents[acceptorSide][proposer_spouse].getRankOf(proposer);
                 deleted[acceptorSide][proposer_spouse][index_of_p] = true;
+                costs[acceptorSide] -= kappa[acceptorSide][proposer_spouse];
                 kappa[acceptorSide][proposer_spouse] = next_valid_index(proposer_spouse, acceptorSide, kappa[acceptorSide][proposer_spouse]);
+                costs[acceptorSide] += kappa[acceptorSide][proposer_spouse];
                 // Divorce
                 married[acceptorSide][proposer_spouse] = Integer.MAX_VALUE;
             }
@@ -204,7 +324,9 @@ public class DACC extends Abstract_SM_Algorithm
                 // Remove from budget
                 index_of_a = agents[proposerSide][acceptor_spouse].getRankOf(acceptor);
                 deleted[proposerSide][acceptor_spouse][index_of_a] = true;
+                costs[proposerSide] -= kappa[proposerSide][acceptor_spouse];
                 kappa[proposerSide][acceptor_spouse] = next_valid_index(acceptor_spouse, proposerSide, kappa[proposerSide][acceptor_spouse]);
+                costs[proposerSide] += kappa[proposerSide][acceptor_spouse];
                 // Divorce
                 married[proposerSide][acceptor_spouse] = Integer.MAX_VALUE;
             }
@@ -217,7 +339,9 @@ public class DACC extends Abstract_SM_Algorithm
             // Proposer rejected
             // Remove acceptor from proposer's budget
             deleted[proposerSide][proposer][kappa[proposerSide][proposer]] = true;
+            costs[proposerSide] -= kappa[proposerSide][proposer];
             kappa[proposerSide][proposer] = next_valid_index(proposer, proposerSide, kappa[proposerSide][proposer]);
+            costs[proposerSide] += kappa[proposerSide][proposer];
         }
     }
 
@@ -230,20 +354,9 @@ public class DACC extends Abstract_SM_Algorithm
         return n;
     }
 
-    private int flip(int side)
-    {
-        return side^1;
-    }
-
-    private static String getName()
-    {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
-        return className;
-    }
-
     private static String getFinalName(String toAppend)
     {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
+        String className = getName();
         return className.substring(className.lastIndexOf('.') + 1) + "_" + toAppend;
     }
 
@@ -295,6 +408,7 @@ public class DACC extends Abstract_SM_Algorithm
         else v = false;
         String seq = cmd.getOptionValue("sequence");
         if (!seq.equals("D") && !seq.equals("R"))
+        //if (!seq.equals("D") && !seq.equals("R") && !seq.equals("SA") && !seq.equals("EO"))
         {
             System.err.println("Error: Requested sequence not supported");
             System.exit(1);
@@ -305,5 +419,6 @@ public class DACC extends Abstract_SM_Algorithm
         Metrics smpMetrics = new Metrics(smp, matching, getFinalName(seq));
         if (v) smpMetrics.perform_checks();    
         smpMetrics.printPerformance();
+
     }
 }

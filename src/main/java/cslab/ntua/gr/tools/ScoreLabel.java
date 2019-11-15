@@ -1,4 +1,4 @@
-package gr.ntua.cslab.tools;
+package cslab.ntua.gr.tools;
 
 public class ScoreLabel implements Comparable<ScoreLabel>
 {

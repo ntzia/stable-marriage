@@ -1,15 +1,22 @@
-package gr.ntua.cslab.algorithms;
+package cslab.ntua.gr.algorithms;
 
-import java.io.*;
-import java.util.*;
-import org.apache.commons.cli.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import gr.ntua.cslab.entities.Rotation;
-import gr.ntua.cslab.entities.Rotations;
-import gr.ntua.cslab.entities.Rotation_Poset;
-import gr.ntua.cslab.entities.Flow_Network;
-import gr.ntua.cslab.entities.Marriage;
-import gr.ntua.cslab.entities.Agent;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import cslab.ntua.gr.entities.Agent;
+import cslab.ntua.gr.entities.Flow_Network;
+import cslab.ntua.gr.entities.Marriage;
+import cslab.ntua.gr.entities.Rotation;
+import cslab.ntua.gr.entities.Rotation_Poset;
+import cslab.ntua.gr.entities.Rotations;
 import gr.ntua.cslab.tools.Metrics;
 
 public class MinEgalitarian extends Abstract_SM_Algorithm
@@ -44,7 +51,7 @@ public class MinEgalitarian extends Abstract_SM_Algorithm
         int[] weights = new int[rots.count];
         for (Rotation r : rotations) weights[r.id] = rotation_weight(r);
         // Construct the flow network and find the positive rotations of the min-cut
-        Flow_Network g = new Flow_Network(agents, rotations, poset, weights);
+        Flow_Network g = new Flow_Network(rotations, poset, weights);
         List<Rotation> not_selected = g.minCut();
         // The solution includes all other positive rotations
         boolean[] dont_select = new boolean[rots.count];
@@ -88,15 +95,9 @@ public class MinEgalitarian extends Abstract_SM_Algorithm
         return res;
     }
 
-    private static String getName()
-    {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
-        return className;
-    }
-
     private static String getFinalName()
     {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
+        String className = getName();
         return className.substring(className.lastIndexOf('.') + 1);
     }    
     

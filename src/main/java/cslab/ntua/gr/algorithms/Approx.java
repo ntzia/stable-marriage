@@ -1,16 +1,23 @@
-package gr.ntua.cslab.algorithms;
+package cslab.ntua.gr.algorithms;
 
-import java.io.*;
-import java.util.*;
-import org.apache.commons.cli.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import gr.ntua.cslab.entities.Rotation;
-import gr.ntua.cslab.entities.Rotations;
-import gr.ntua.cslab.entities.Rotation_Poset;
-import gr.ntua.cslab.entities.Agent;
-import gr.ntua.cslab.entities.Marriage;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import cslab.ntua.gr.entities.Agent;
+import cslab.ntua.gr.entities.Marriage;
+import cslab.ntua.gr.entities.Rotation;
+import cslab.ntua.gr.entities.Rotation_Poset;
+import cslab.ntua.gr.entities.Rotations;
+import cslab.ntua.gr.tools.Permutations;
 import gr.ntua.cslab.tools.Metrics;
-import gr.ntua.cslab.tools.Permutations;
 
 public class Approx extends Abstract_SM_Algorithm
 {
@@ -78,7 +85,7 @@ public class Approx extends Abstract_SM_Algorithm
         // Start
         byte[] selected;
         boolean[] not_valid;
-        List<Rotation> r, r_min, not_in_r, excluded, valid_small;
+        List<Rotation> r, r_min, not_in_r, excluded;
         Marriage m, result = starting_m;
         boolean done = false;
         for (int i = 0; i <= large_max; i++)
@@ -179,15 +186,9 @@ public class Approx extends Abstract_SM_Algorithm
         return res;
     }
 
-    private static String getName()
-    {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
-        return className;
-    }
-
     private static String getFinalName(String toAppend)
     {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
+        String className = getName();
         return className.substring(className.lastIndexOf('.') + 1) + "_" + toAppend;
     }
 

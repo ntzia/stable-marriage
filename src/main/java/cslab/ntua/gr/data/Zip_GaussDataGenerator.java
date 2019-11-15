@@ -1,10 +1,10 @@
-package gr.ntua.cslab.data;
+package cslab.ntua.gr.data;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Random;
 
-import gr.ntua.cslab.tools.ScoreLabel;
+import cslab.ntua.gr.tools.ScoreLabel;
 
 public class Zip_GaussDataGenerator extends Zip_DataGenerator 
 {

@@ -1,6 +1,9 @@
-package gr.ntua.cslab.entities;
+package cslab.ntua.gr.entities;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Queue;
  
 public class Test 
 {

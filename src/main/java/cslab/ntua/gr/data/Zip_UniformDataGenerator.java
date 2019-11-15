@@ -1,4 +1,4 @@
-package gr.ntua.cslab.data;
+package cslab.ntua.gr.data;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -28,8 +28,6 @@ public class Zip_UniformDataGenerator extends Zip_DataGenerator
 				System.err.println("Two arguments needed: (size) (outFile)");
 				System.exit(1);
 			}
-
-			Class[] cArg = new Class[2];
 			
 			Zip_DataGenerator gen = new Zip_UniformDataGenerator(new Integer(args[0]));
 			

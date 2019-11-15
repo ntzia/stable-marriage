@@ -1,9 +1,14 @@
-package gr.ntua.cslab.data;
+package cslab.ntua.gr.data;
 
-import java.io.*;
-import java.util.zip.*;
+import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public abstract class Zip_DataGenerator 
 {

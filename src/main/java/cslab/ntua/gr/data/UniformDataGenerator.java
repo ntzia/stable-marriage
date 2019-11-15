@@ -1,4 +1,4 @@
-package gr.ntua.cslab.data;
+package cslab.ntua.gr.data;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -29,8 +29,6 @@ public class UniformDataGenerator extends DataGenerator
 				System.err.println("I need size of dataset");
 				System.exit(1);
 			}
-
-			Class[] cArg = new Class[2];
 			
 			DataGenerator gen = new UniformDataGenerator(new Integer(args[0]));
 			

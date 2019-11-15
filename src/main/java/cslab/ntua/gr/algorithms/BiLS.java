@@ -1,15 +1,23 @@
-package gr.ntua.cslab.algorithms;
+package cslab.ntua.gr.algorithms;
 
-import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import org.apache.commons.cli.*;
 
-import gr.ntua.cslab.entities.Rotations;
-import gr.ntua.cslab.entities.Agent;
-import gr.ntua.cslab.entities.Marriage;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import cslab.ntua.gr.entities.Agent;
+import cslab.ntua.gr.entities.Marriage;
 import gr.ntua.cslab.tools.Metrics;
 
+// The original implementation of the bidirectional local search algorithm that
+// uses breakmarriage operations
 public class BiLS extends Abstract_SM_Algorithm
 {
     double probability;
@@ -32,22 +40,25 @@ public class BiLS extends Abstract_SM_Algorithm
 
     public Marriage match()
     {
-        long startTime = System.nanoTime();
-
-        boolean done, forward, backward;
-        Marriage current, best, neighbour, next, mleft, mright;
+        boolean forward, backward;
+        Marriage best, neighbour, next, mleft, mright;
         List<Marriage> neighbourhood;
+        long startTime = System.nanoTime();
 
         Abstract_SM_Algorithm maleOpt = new GS_MaleOpt(n, agents);
         Marriage maleOptMatching = maleOpt.match();
         Abstract_SM_Algorithm femaleOpt = new GS_FemaleOpt(n, agents);
         Marriage femaleOptMatching = femaleOpt.match();
-        Rotations rotations = new Rotations(n, agents, maleOptMatching, femaleOptMatching);
 
         // Initialize according to gender optimal solutions
-        mleft = maleOptMatching; 
+        mleft = maleOptMatching;
         mright = femaleOptMatching;
+
         best = betterMarriage(mleft, mright);
+
+        // Local Search
+        forward = true;
+        backward = true;
 
         // Local Search
         forward = true;
@@ -58,16 +69,16 @@ public class BiLS extends Abstract_SM_Algorithm
             next = null;
             neighbourhood = new ArrayList<Marriage>();
             // Discover all neighbours
-            for (int i = 0; i < rotations.count; i++)
+            for (int i = 0; i < n; i++)
             {
-                if (rotations.isExposed(mleft, i, 0))
+                neighbour = breakmarriage(mleft, i, 0);
+                if (neighbour != null)
                 {
-                    neighbour = rotations.eliminate(mleft, i, 0);
                     neighbourhood.add(neighbour);
-                    next = betterMarriage(neighbour, next);   
+                    next = betterMarriage(neighbour, next);                        
                 }
             }
-            // With some probability, move to a random neighbor
+            // With some small probability, move to a random neighbor
             if (ThreadLocalRandom.current().nextInt(0, 100) < 100 * probability)
             {
                 if (neighbourhood.size() != 0)
@@ -87,13 +98,13 @@ public class BiLS extends Abstract_SM_Algorithm
             next = null;
             neighbourhood = new ArrayList<Marriage>();
             // Discover all neighbours
-            for (int i = 0; i < rotations.count; i++)
+            for (int i = 0; i < n; i++)
             {
-                if (rotations.isExposed(mright, i, 1))
+                neighbour = breakmarriage(mright, i, 1);
+                if (neighbour != null)
                 {
-                    neighbour = rotations.eliminate(mright, i, 1);
                     neighbourhood.add(neighbour);
-                    next = betterMarriage(neighbour, next);   
+                    next = betterMarriage(neighbour, next);                         
                 }
             }
             // With some small probability, move to a random neighbor
@@ -117,6 +128,68 @@ public class BiLS extends Abstract_SM_Algorithm
         return best;
     }
 
+    private Marriage breakmarriage(Marriage current, int agent, int side)
+    {
+        int proposer, acceptor, spouse, proposerRank, old;
+
+        // Initialize
+        int[] kappa = new int[n];
+        for (int i = 0; i < n; i++) kappa[i] = current.mIndex[side][i];
+        int[][] mIndex = new int[2][n];
+        for (int i = 0; i < n; i++)
+        {
+            mIndex[0][i] = current.mIndex[0][i];
+            mIndex[1][i] = current.mIndex[1][i];
+        }
+
+        // Break up agent
+        spouse = agents[side][agent].getAgentAt(kappa[agent]);
+        kappa[agent]++;
+        mIndex[side][agent] = Integer.MAX_VALUE;
+        // Note: The spouse is NOT free and compares proposals to agent
+        // The loop ends when spouse first accepts a proposal
+
+        // Perform proposals (one agent active at all times)
+        proposer = agent;
+        while (true)
+        {
+            if (kappa[proposer] == n) return null;
+
+            // Propose
+            acceptor = agents[side][proposer].getAgentAt(kappa[proposer]);
+            proposerRank = agents[flip(side)][acceptor].getRankOf(proposer);
+            if (mIndex[flip(side)][acceptor] > proposerRank)
+            {
+                //Engage
+                if (acceptor != spouse)
+                {
+                    // Break up and marry
+                    old = agents[flip(side)][acceptor].getAgentAt(mIndex[flip(side)][acceptor]);
+                    mIndex[side][old] = Integer.MAX_VALUE;  
+                    mIndex[side][proposer] = kappa[proposer];
+                    mIndex[flip(side)][acceptor] = proposerRank;
+                    proposer = old;              
+                }
+                else
+                {
+                    // Spouse finally marries again and concludes proposals
+                    mIndex[side][proposer] = kappa[proposer];
+                    mIndex[flip(side)][acceptor] = proposerRank;
+                    break;
+                }
+            }
+            else
+            {
+                // rejected
+                kappa[proposer]++;
+            }            
+        }
+
+        // Return the new marriage
+        Marriage new_m = new Marriage(n, mIndex);
+        return new_m;
+    }
+
     private Marriage betterMarriage(Marriage m1, Marriage m2)
     {
         if (cost_to_optimize.equals("SEq"))
@@ -133,20 +206,9 @@ public class BiLS extends Abstract_SM_Algorithm
         return null;
     }
 
-    private int flip(int side)
-    {
-    	return side^1;
-    }
-
-    private static String getName()
-    {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
-        return className;
-    }
-
     private static String getFinalName(double prob, String toAppend)
     {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
+        String className = getName();
         return className.substring(className.lastIndexOf('.') + 1) + "_" + toAppend + "_" + prob;
     }
 

@@ -1,15 +1,19 @@
-package gr.ntua.cslab.tools;
+package cslab.ntua.gr.tools;
 
-import java.io.*;
-import java.util.*;
-import org.apache.commons.cli.*;
-
-import gr.ntua.cslab.algorithms.*;
-import gr.ntua.cslab.entities.Rotation;
-import gr.ntua.cslab.entities.Rotations;
-import gr.ntua.cslab.entities.Rotation_Poset;
-import gr.ntua.cslab.entities.Agent;
-import gr.ntua.cslab.entities.Marriage;
+import cslab.ntua.gr.algorithms.Abstract_SM_Algorithm;
+import cslab.ntua.gr.algorithms.BiLS;
+import cslab.ntua.gr.algorithms.DACC;
+import cslab.ntua.gr.algorithms.EROM;
+import cslab.ntua.gr.algorithms.ESMA;
+import cslab.ntua.gr.algorithms.GS_FemaleOpt;
+import cslab.ntua.gr.algorithms.GS_MaleOpt;
+import cslab.ntua.gr.algorithms.Lotto;
+import cslab.ntua.gr.algorithms.MinEgalitarian;
+import cslab.ntua.gr.algorithms.PowerBalance;
+import cslab.ntua.gr.algorithms.ROM;
+import cslab.ntua.gr.entities.Agent;
+import cslab.ntua.gr.entities.Marriage;
+import gr.ntua.cslab.tools.Metrics;
 
 public class TestMinEgalitarian
 {

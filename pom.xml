@@ -5,7 +5,7 @@
   <groupId>gr.ntua.ece.cslab</groupId>
   <artifactId>stable-marriage</artifactId>
   <packaging>jar</packaging>
-  <version>2.0</version>
+  <version>1.0</version>
   <name>stable-marriage</name>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -24,13 +24,6 @@
             <goals>
               <goal>shade</goal>
             </goals>
-            <configuration>
-              <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>gr.ntua.cslab.algorithms.GS_MaleOpt</mainClass>
-                </transformer>
-              </transformers>
-            </configuration>
           </execution>
         </executions>
       </plugin>

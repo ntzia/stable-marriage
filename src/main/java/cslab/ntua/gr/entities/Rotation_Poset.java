@@ -1,10 +1,16 @@
-package gr.ntua.cslab.entities;
+package cslab.ntua.gr.entities;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 
-import gr.ntua.cslab.algorithms.Abstract_SM_Algorithm;
-import gr.ntua.cslab.algorithms.GS_MaleOpt;
-import gr.ntua.cslab.algorithms.GS_FemaleOpt;
+import cslab.ntua.gr.algorithms.Abstract_SM_Algorithm;
+import cslab.ntua.gr.algorithms.GS_FemaleOpt;
+import cslab.ntua.gr.algorithms.GS_MaleOpt;
 
 public class Rotation_Poset
 {

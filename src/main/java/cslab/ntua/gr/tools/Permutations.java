@@ -1,7 +1,6 @@
-package gr.ntua.cslab.tools;
+package cslab.ntua.gr.tools;
 
-import java.io.*;
-import java.util.*;
+import java.util.Arrays;
 
 public class Permutations
 {	

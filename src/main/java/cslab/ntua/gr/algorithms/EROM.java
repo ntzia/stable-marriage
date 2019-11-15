@@ -1,18 +1,22 @@
-package gr.ntua.cslab.algorithms;
+package cslab.ntua.gr.algorithms;
 
-import java.io.*;
-import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
-import org.apache.commons.cli.*;
+import java.util.ArrayList;
 
-import gr.ntua.cslab.entities.Agent;
-import gr.ntua.cslab.entities.Marriage;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import cslab.ntua.gr.entities.Agent;
+import cslab.ntua.gr.entities.Marriage;
 import gr.ntua.cslab.tools.Metrics;
 
 public class EROM extends Abstract_SM_Algorithm
 {
     private int[][] married;
-    private boolean[][][] valid;
     private ArrayList<Integer> proposers;
 
     public EROM(int n, String menFileName, String womenFileName)
@@ -143,20 +147,9 @@ public class EROM extends Abstract_SM_Algorithm
         return -2;
     }
 
-    private int flip(int side)
-    {
-    	return side^1;
-    }
-
-    private static String getName()
-    {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
-        return className;
-    }
-
     private static String getFinalName()
     {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
+        String className = getName();
         return className.substring(className.lastIndexOf('.') + 1);
     }
 
@@ -207,6 +200,6 @@ public class EROM extends Abstract_SM_Algorithm
         Marriage matching = smp.match();
         Metrics smpMetrics = new Metrics(smp, matching, getFinalName());
         if (v) smpMetrics.perform_checks(); 
-        smpMetrics.printPerformance();     
+        smpMetrics.printPerformance();  
     }
 }

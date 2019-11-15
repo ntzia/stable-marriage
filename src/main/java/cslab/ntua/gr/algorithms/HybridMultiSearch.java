@@ -1,12 +1,23 @@
-package gr.ntua.cslab.algorithms;
+package cslab.ntua.gr.algorithms;
 
-import java.io.*;
-import java.util.*;
-import org.apache.commons.cli.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Stack;
 
-import gr.ntua.cslab.entities.Rotations;
-import gr.ntua.cslab.entities.Agent;
-import gr.ntua.cslab.entities.Marriage;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import cslab.ntua.gr.entities.Agent;
+import cslab.ntua.gr.entities.Marriage;
+import cslab.ntua.gr.entities.Rotations;
 import gr.ntua.cslab.tools.Metrics;
 
 public class HybridMultiSearch extends Abstract_SM_Algorithm
@@ -319,21 +330,10 @@ public class HybridMultiSearch extends Abstract_SM_Algorithm
         return null;
     }
 
-    private int flip(int side)
-    {
-        return side^1;
-    }
-
-    private static String getName()
-    {
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
-        return className;
-    }
-
     private static String getFinalName(CommandLine cmd, String toAppend)
     {
         String res = "";
-        String className = Thread.currentThread().getStackTrace()[2].getClassName(); 
+        String className = getName();
         res += className.substring(className.lastIndexOf('.') + 1);
         res += "_" + cmd.getOptionValue("cost");
         if (cmd.hasOption("PBRounds")) res += "_" + cmd.getOptionValue("PBRounds");

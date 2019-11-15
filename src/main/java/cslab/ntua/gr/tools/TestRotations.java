@@ -1,15 +1,15 @@
-package gr.ntua.cslab.tools;
+package cslab.ntua.gr.tools;
 
-import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
-import gr.ntua.cslab.algorithms.Abstract_SM_Algorithm;
-import gr.ntua.cslab.algorithms.GS_MaleOpt;
-import gr.ntua.cslab.algorithms.GS_FemaleOpt;
-import gr.ntua.cslab.entities.Agent;
-import gr.ntua.cslab.entities.Marriage;
-import gr.ntua.cslab.entities.Rotation;
-import gr.ntua.cslab.entities.Rotations;
+import cslab.ntua.gr.algorithms.Abstract_SM_Algorithm;
+import cslab.ntua.gr.algorithms.GS_FemaleOpt;
+import cslab.ntua.gr.algorithms.GS_MaleOpt;
+import cslab.ntua.gr.entities.Agent;
+import cslab.ntua.gr.entities.Marriage;
+import cslab.ntua.gr.entities.Rotation;
+import cslab.ntua.gr.entities.Rotations;
+import gr.ntua.cslab.tools.Metrics;
 
 public class TestRotations
 {
