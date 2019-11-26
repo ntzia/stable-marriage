@@ -4,23 +4,36 @@ Implementation of algorithms that solve the stable marriage problem.
 (https://en.wikipedia.org/wiki/Stable_marriage_problem)
 
 Algorithms implemented from the literature:
-* Gale-Shapley [https://www.researchgate.net/publication/228108175_College_Admissions_and_Stability_of_Marriage]
+* Gale-Shapley  
+[https://www.researchgate.net/publication/228108175_College_Admissions_and_Stability_of_Marriage]
 	* GS_MaleOpt produces the optimal solution for men
 	* GS_FemaleOpt produces the optimal solution for women
-* MinRegret [https://dl.acm.org/citation.cfm?id=23802]
-* MinEgalitarian [https://dl.acm.org/citation.cfm?id=28871]
-* Approx [https://dl.acm.org/citation.cfm?id=1868239]
-* DACC (2 variants, controlled with -s)  [https://dl.acm.org/citation.cfm?id=2940727]
+* MinRegret   
+[https://dl.acm.org/citation.cfm?id=23802]
+* MinEgalitarian  
+[https://dl.acm.org/citation.cfm?id=28871]
+* Approx  
+[https://dl.acm.org/citation.cfm?id=1868239]
+* DACC (2 variants, controlled with -s)  
+[https://dl.acm.org/citation.cfm?id=2940727]
 	* DACC_R (-s R) chooses the sequence of proposals randomly
 	* DACC_D (-s D) chooses the sequence of proposals based on which side is "losing" (as PowerBalance does)
-* ESMA [https://dl.acm.org/citation.cfm?id=2921985&preflayout=flat]
-* Lotto [https://dl.acm.org/citation.cfm?id=593304]
-* ROM [https://link.springer.com/article/10.1007/BF01211824]
-* EROM [https://link.springer.com/article/10.1007/s11238-005-6846-0]
-* Swing [https://dl.acm.org/citation.cfm?id=2485203]
-* SML2 [https://www.researchgate.net/publication/286062161_Local_Search_Approaches_in_Stable_Matching_Problems]
-* BiLS [https://www.researchgate.net/publication/312256504_A_Bidirectional_Local_Search_for_the_Stable_Marriage_Problem]
-* Better/Best Response Dynamics [https://dl.acm.org/citation.cfm?id=1386831]
+* ESMA  
+[https://dl.acm.org/citation.cfm?id=2921985&preflayout=flat]
+* Lotto  
+[https://dl.acm.org/citation.cfm?id=593304]
+* ROM  
+[https://link.springer.com/article/10.1007/BF01211824]
+* EROM  
+[https://link.springer.com/article/10.1007/s11238-005-6846-0]
+* Swing  
+[https://dl.acm.org/citation.cfm?id=2485203]
+* SML2  
+[https://www.researchgate.net/publication/286062161_Local_Search_Approaches_in_Stable_Matching_Problems]
+* BiLS  
+[https://www.researchgate.net/publication/312256504_A_Bidirectional_Local_Search_for_the_Stable_Marriage_Problem]
+* Better/Best Response Dynamics  
+[https://dl.acm.org/citation.cfm?id=1386831]
 
 Novel algorithms implemented:
 * PDB, EDS, LDS: proposal-based approaches that terminate by monotonically increasing content couples

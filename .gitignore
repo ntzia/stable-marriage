@@ -17,3 +17,16 @@ hs_err_pid*
 
 # pom file after shade
 dependency-reduced-pom.xml
+
+# input files
+*.in
+
+# output files
+*.out
+
+# plots
+*.png
+*.pdf
+
+# eclipse settings
+.settings
