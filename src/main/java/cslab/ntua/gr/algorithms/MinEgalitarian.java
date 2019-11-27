@@ -17,7 +17,7 @@ import cslab.ntua.gr.entities.Marriage;
 import cslab.ntua.gr.entities.Rotation;
 import cslab.ntua.gr.entities.Rotation_Poset;
 import cslab.ntua.gr.entities.Rotations;
-import gr.ntua.cslab.tools.Metrics;
+import cslab.ntua.gr.tools.Metrics;
 
 public class MinEgalitarian extends Abstract_SM_Algorithm
 {

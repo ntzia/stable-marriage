@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - Find_Example",
+            "request": "launch",
+            "mainClass": "cslab.ntua.gr.Find_Example",
+            "projectName": "stable-marriage"
+        }
+    ]
+}

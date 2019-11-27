@@ -10,7 +10,7 @@ import org.apache.commons.cli.ParseException;
 
 import cslab.ntua.gr.entities.Agent;
 import cslab.ntua.gr.entities.Marriage;
-import gr.ntua.cslab.tools.Metrics;
+import cslab.ntua.gr.tools.Metrics;
 
 public class PDB extends Abstract_SM_Algorithm
 {

@@ -37,7 +37,7 @@ public class Rotation_Poset
             construct_digraph_women(maleOptMatching, femaleOptMatching);
         }
         this.count = rotations.count;
-        // Possibly hyper-graph, so remove duplicate edges (also removes self-loops)
+        // Possibly multi-graph, so remove duplicate edges (also removes self-loops)
         remove_duplicates();
         this.neighbors_reversed = reverse_graph();
     }

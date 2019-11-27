@@ -17,7 +17,7 @@ import cslab.ntua.gr.entities.Rotation;
 import cslab.ntua.gr.entities.Rotation_Poset;
 import cslab.ntua.gr.entities.Rotations;
 import cslab.ntua.gr.tools.Permutations;
-import gr.ntua.cslab.tools.Metrics;
+import cslab.ntua.gr.tools.Metrics;
 
 public class Approx extends Abstract_SM_Algorithm
 {

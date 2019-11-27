@@ -14,7 +14,7 @@ import cslab.ntua.gr.algorithms.PowerBalance;
 import cslab.ntua.gr.algorithms.ROM;
 import cslab.ntua.gr.entities.Agent;
 import cslab.ntua.gr.entities.Marriage;
-import gr.ntua.cslab.tools.Metrics;
+import cslab.ntua.gr.tools.Metrics;
 
 public class TestApprox
 {

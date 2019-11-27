@@ -14,7 +14,7 @@ import org.apache.commons.cli.ParseException;
 
 import cslab.ntua.gr.entities.Agent;
 import cslab.ntua.gr.entities.Marriage;
-import gr.ntua.cslab.tools.Metrics;
+import cslab.ntua.gr.tools.Metrics;
 
 // The original implementation of the bidirectional local search algorithm that
 // uses breakmarriage operations
