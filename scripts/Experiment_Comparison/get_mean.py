@@ -13,9 +13,9 @@ abbr = {"Uniform" : "U", "Discrete" : "D", "UniformDiscrete" : "UD", "Gauss" : "
 for d in sys.argv[1:]:
 	
 	print(d + ":")
-	fm = open("../outputs/" + abbr[d] + 'mean', 'w')
+	fm = open("../../results/outputs/Experiment_Comparison/" + abbr[d] + 'mean', 'w')
 
-	for file in os.listdir("../outputs"):
+	for file in os.listdir("../../results/outputs/Experiment_Comparison"):
 
 		if file.startswith("out" + abbr[d] + "_"):
 
@@ -23,7 +23,7 @@ for d in sys.argv[1:]:
 			size = int(tokens[1])
 			print("\tn = " + str(size) + ":")
 
-			f = open("../outputs/" + file, 'r')
+			f = open("../../results/outputs/Experiment_Comparison/" + file, 'r')
 			counters = {}
 			times = {}
 			ECosts = {}
