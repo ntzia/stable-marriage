@@ -31,3 +31,9 @@ dependency-reduced-pom.xml
 
 # eclipse settings
 .settings
+
+# vscode
+.settings/
+.vscode/
+.classpath
+.project
