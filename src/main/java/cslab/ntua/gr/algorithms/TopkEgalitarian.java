@@ -19,17 +19,22 @@ import cslab.ntua.gr.entities.Rotation_Poset;
 import cslab.ntua.gr.entities.Rotations;
 import cslab.ntua.gr.tools.Metrics;
 
-public class MinEgalitarian extends Abstract_SM_Algorithm
-{
-    public MinEgalitarian(int n, String menFileName, String womenFileName)
+public class TopkEgalitarian extends Abstract_SM_Algorithm{
+
+    int k = 0;
+
+    
+    public TopkEgalitarian(int n, String menFileName, String womenFileName, int k)
     {
         super(n, menFileName, womenFileName);
+        this.k = k;
     }
 
     // Constructor for when agents are available
-    public MinEgalitarian(int n, Agent[][] agents)
+    public TopkEgalitarian(int n, Agent[][] agents, int k)
     {
         super(n, agents);
+        this.k = k;
     }
 
     public Marriage match()
@@ -72,6 +77,13 @@ public class MinEgalitarian extends Abstract_SM_Algorithm
         return res;
     }
 
+    public Marriage get_next_match()
+    {
+        long startTime = System.nanoTime();
+
+        return null;
+    }
+    
     private static String getFinalName()
     {
         String className = getName();
@@ -95,6 +107,10 @@ public class MinEgalitarian extends Abstract_SM_Algorithm
         women.setRequired(false);
         options.addOption(women);
 
+        Option k_option = new Option("k", "kValue", true, "number of top k egalitarian marriages");
+        k_option.setRequired(false);
+        options.addOption(k_option);
+
         Option verify = new Option("v", "verify", false, "verify result");
         verify.setRequired(false);
         options.addOption(verify);
@@ -117,14 +133,25 @@ public class MinEgalitarian extends Abstract_SM_Algorithm
         int n = Integer.parseInt(cmd.getOptionValue("size"));
         String menFile = cmd.getOptionValue("men");
         String womenFile = cmd.getOptionValue("women");
+        int k = cmd.hasOption("kValue") ? Integer.parseInt(cmd.getOptionValue("kValue")) : 1;
+        if (k < 1) k = 1;
         boolean v;
         if (cmd.hasOption("verify")) v = true;
         else v = false;
 
-        Abstract_SM_Algorithm smp = new MinEgalitarian(n, menFile, womenFile);
+        TopkEgalitarian smp = new TopkEgalitarian(n, menFile, womenFile, k);
         Marriage matching = smp.match();
         Metrics smpMetrics = new Metrics(smp, matching, getFinalName());
         if (v) smpMetrics.perform_checks();  
         smpMetrics.printPerformance();
+
+        for (int i = 2; i <= k; i++) 
+        {
+            matching = smp.get_next_match();
+            smpMetrics = new Metrics(smp, matching, getFinalName());
+            if (v) smpMetrics.perform_checks();  
+            smpMetrics.printPerformance();
+        }
     }
+
 }

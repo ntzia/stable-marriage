@@ -30,7 +30,7 @@ public class UniformDataGenerator extends DataGenerator
 				System.exit(1);
 			}
 			
-			DataGenerator gen = new UniformDataGenerator(new Integer(args[0]));
+			DataGenerator gen = new UniformDataGenerator(Integer.parseInt(args[0]));
 			
 			if (args.length > 1) gen.setOutputFile(args[1]);
 			gen.create();

@@ -1,6 +1,7 @@
 package cslab.ntua.gr.entities;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 import cslab.ntua.gr.algorithms.Abstract_SM_Algorithm;
@@ -46,6 +47,18 @@ public class Rotations
             System.exit(1);
         }
         else this.count = this.countM;
+    }
+
+    // Given a starting marriage, eliminates a given list of rotations according to a given topological sorting and outputs the resulting marriage
+    public static Marriage eliminate_rotations(List<Rotation> rs, Marriage m, int side, List<Rotation> topological_sorting, Rotations rots)
+    {
+        boolean[] to_be_eliminated = new boolean[rots.count];
+        Marriage res = m;
+        for (Rotation r : rs) to_be_eliminated[r.id] = true;
+        for (Rotation r : topological_sorting) 
+            if (to_be_eliminated[r.id])
+                res = rots.eliminate(res, r.id, side);
+        return res;
     }
 
     private void find_all_rotations(Marriage maleOptMatching, Marriage femaleOptMatching)

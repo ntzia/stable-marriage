@@ -40,8 +40,8 @@ public class Zip_DiscreteDataGenerator extends Zip_DataGenerator
 			System.err.println("Three arguments needed: (size) (hot_region_size) (outFile)");
 			System.exit(1);
 		}
-		Zip_DiscreteDataGenerator gen = new Zip_DiscreteDataGenerator(new Integer(args[0]));
-		gen.setHotRegion(new Double(args[1]));
+		Zip_DiscreteDataGenerator gen = new Zip_DiscreteDataGenerator(Integer.valueOf(args[0]));
+		gen.setHotRegion(Double.parseDouble(args[1]));
 		gen.setOutputFile(args[2]);
 		gen.create();
 	}

@@ -40,7 +40,7 @@ public class DiscreteDataGenerator extends DataGenerator
 			System.err.println("I need size of dataset");
 			System.exit(1);
 		}
-		DiscreteDataGenerator gen = new DiscreteDataGenerator(new Integer(args[0]));
+		DiscreteDataGenerator gen = new DiscreteDataGenerator(Integer.valueOf(args[0]));
 
 		if (args.length < 2)
 		{
@@ -49,7 +49,7 @@ public class DiscreteDataGenerator extends DataGenerator
 		} 
 		else 
 		{
-			gen.setHotRegion(new Double(args[1]));
+			gen.setHotRegion(Double.parseDouble(args[1]));
 		}
 			
 		if (args.length > 2) gen.setOutputFile(args[2]);

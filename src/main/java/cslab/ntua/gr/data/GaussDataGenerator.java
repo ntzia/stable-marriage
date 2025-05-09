@@ -50,7 +50,7 @@ public class GaussDataGenerator extends DataGenerator
 			System.err.println("I need size of dataset");
 			System.exit(1);
 		}
-		GaussDataGenerator gen = new GaussDataGenerator(new Integer(args[0]));
+		GaussDataGenerator gen = new GaussDataGenerator(Integer.parseInt(args[0]));
 
 		if (args.length < 2)
 		{
@@ -59,7 +59,7 @@ public class GaussDataGenerator extends DataGenerator
 		} 
 		else 
 		{
-			gen.setSkewenessFactor(new Double(args[1]));
+			gen.setSkewenessFactor(Double.parseDouble(args[1]));
 		}
 			
 		if (args.length > 2) gen.setOutputFile(args[2]);

@@ -50,8 +50,8 @@ public class Zip_GaussDataGenerator extends Zip_DataGenerator
 			System.err.println("Three arguments needed: (size) (polarity) (outFile)");
 			System.exit(1);
 		}
-		Zip_GaussDataGenerator gen = new Zip_GaussDataGenerator(new Integer(args[0]));
-		gen.setSkewenessFactor(new Double(args[1]));
+		Zip_GaussDataGenerator gen = new Zip_GaussDataGenerator(Integer.parseInt(args[0]));
+		gen.setSkewenessFactor(Double.parseDouble(args[1]));
 		gen.setOutputFile(args[2]);
 		gen.create();
 	}

@@ -29,7 +29,7 @@ public class Zip_UniformDataGenerator extends Zip_DataGenerator
 				System.exit(1);
 			}
 			
-			Zip_DataGenerator gen = new Zip_UniformDataGenerator(new Integer(args[0]));
+			Zip_DataGenerator gen = new Zip_UniformDataGenerator(Integer.parseInt(args[0]));
 			
 			gen.setOutputFile(args[1]);
 			gen.create();

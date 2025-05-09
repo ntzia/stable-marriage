@@ -52,6 +52,17 @@ public class Rotation
         return true;
     }
 
+    public int compute_rotation_weight(Agent[][] agents)
+    {
+        int cost = 0;
+        for (int i = 0; i < this.size; i++)
+        {
+            cost += agents[0][this.men.get(i)].getRankOf(this.women.get(i)) + agents[1][this.women.get(i)].getRankOf(this.men.get(i));
+            cost -= agents[0][this.men.get(i)].getRankOf(this.women.get(this.getPrevIndex(i))) + agents[1][this.women.get(this.getPrevIndex(i))].getRankOf(this.men.get(i));
+        }   
+        return cost;
+    }
+
     public int getNextIndex(int index)
     {
         if (index == size - 1) return 0;
