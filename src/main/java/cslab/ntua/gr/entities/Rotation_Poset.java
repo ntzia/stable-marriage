@@ -307,9 +307,9 @@ public class Rotation_Poset
     }
 
     /**
-     * Report (as a List) the topological sort of the vertices; null for no such sort.
+     * Report (as an ArrayList) the topological sort of the vertices; null for no such sort.
      */
-    public List<Rotation> topSort() 
+    public ArrayList<Rotation> topSort() 
     {
         Map<Rotation, Integer> degree = inDegree();
         // Determine all vertices with zero in-degree
@@ -319,7 +319,7 @@ public class Rotation_Poset
             if (degree.get(v) == 0) zeroVerts.push(v);
         }
         // Determine the topological order
-        List<Rotation> result = new ArrayList<Rotation>();
+        ArrayList<Rotation> result = new ArrayList<Rotation>();
         while (!zeroVerts.isEmpty()) 
         {
             Rotation v = zeroVerts.pop();                  // Choose a vertex with zero in-degree

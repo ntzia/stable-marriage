@@ -1,7 +1,9 @@
 package cslab.ntua.gr.algorithms;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
+import java.util.PriorityQueue;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -14,6 +16,7 @@ import org.apache.commons.cli.ParseException;
 import cslab.ntua.gr.entities.Agent;
 import cslab.ntua.gr.entities.Flow_Network;
 import cslab.ntua.gr.entities.Marriage;
+import cslab.ntua.gr.entities.PQ_Element_Egalitarian;
 import cslab.ntua.gr.entities.Rotation;
 import cslab.ntua.gr.entities.Rotation_Poset;
 import cslab.ntua.gr.entities.Rotations;
@@ -22,8 +25,12 @@ import cslab.ntua.gr.tools.Metrics;
 public class TopkEgalitarian extends Abstract_SM_Algorithm{
 
     int k = 0;
+    PriorityQueue<PQ_Element_Egalitarian> pq = new PriorityQueue<PQ_Element_Egalitarian>();
+    PQ_Element_Egalitarian last_returned = null;
+    int rots_cnt = -1;
+    Marriage maleOptMatching = null;
+    Marriage femaleOptMatching = null;
 
-    
     public TopkEgalitarian(int n, String menFileName, String womenFileName, int k)
     {
         super(n, menFileName, womenFileName);
@@ -43,32 +50,39 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
 
         // Initialize
         Abstract_SM_Algorithm maleOpt = new GS_MaleOpt(n, agents);
-        Marriage maleOptMatching = maleOpt.match();
+        maleOptMatching = maleOpt.match();
         Abstract_SM_Algorithm femaleOpt = new GS_FemaleOpt(n, agents);
-        Marriage femaleOptMatching = femaleOpt.match();
+        femaleOptMatching = femaleOpt.match();
 
         // Compute the rotation poset
         Rotations rots = new Rotations(n, agents, maleOptMatching, femaleOptMatching);
-        ArrayList<Rotation> rotations = rots.men_rotations;
+        this.rots_cnt = rots.count;
         Rotation_Poset poset = new Rotation_Poset(n, agents, 0, rots, maleOptMatching, femaleOptMatching);
-        List<Rotation> topological_sorting = poset.topSort();
+        ArrayList<Rotation> rotations_topsort = poset.topSort();
         // Compute the weight of the rotations
         int[] weights = new int[rots.count];
-        for (Rotation r : rotations) weights[r.id] = r.compute_rotation_weight(agents);
+        for (Rotation r : rotations_topsort) weights[r.id] = r.compute_rotation_weight(agents);
         // Construct the flow network and find the positive rotations of the min-cut
-        Flow_Network g = new Flow_Network(rotations, poset, weights);
+        Flow_Network g = new Flow_Network(rotations_topsort, poset, weights);
         List<Rotation> not_selected = g.minCut();
         // The solution includes all other positive rotations
-        boolean[] dont_select = new boolean[rots.count];
+        boolean[] dont_select = new boolean[rots_cnt];
         for (Rotation r : not_selected) dont_select[r.id] = true;
         List<Rotation> solution = new ArrayList<Rotation>();
+        boolean[] solution_bits = new boolean[rots_cnt];
         // Their predecessors have to be included as well
-        for (Rotation r : rotations)
+        for (Rotation r : rotations_topsort)
         {
-            if (weights[r.id] > 0 && !dont_select[r.id]) solution.add(r);
+            if (weights[r.id] > 0 && !dont_select[r.id]) 
+            {
+                solution.add(r);
+                solution_bits[r.id] = true;
+            }
         }
         solution = poset.must_eliminate(solution);
-        Marriage res = Rotations.eliminate_rotations(solution, maleOptMatching, 0, topological_sorting, rots);
+        Marriage res = Rotations.eliminate_rotations(solution, maleOptMatching, 0, rotations_topsort, rots);
+
+        last_returned = new PQ_Element_Egalitarian(solution_bits, -1, res, res.getECost());
 
         long endTime = System.nanoTime();
         long elapsedTime = endTime - startTime;
@@ -81,7 +95,54 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
     {
         long startTime = System.nanoTime();
 
-        return null;
+        // Insert new candidates to the PQ as deviations from the last solution
+        for (int i = last_returned.last_deviation_index; i < rots_cnt; i++)
+        {
+            // Create successor constraints
+            boolean[] new_solution_bits = new boolean[rots_cnt];
+            for (int j = 0; j < i; j++) new_solution_bits[j] = last_returned.solution_bitset[j];
+            new_solution_bits[i + 1] = !last_returned.solution_bitset[i + 1];
+            
+            // From constraints, generate modified poset, and its optimal solution
+            Rotations new_rots = null;
+            ArrayList<Rotation> new_rotations = new ArrayList<Rotation>();
+            Rotation_Poset new_poset = null;
+            List<Rotation> new_topological_sorting = new_poset.topSort();
+            int[] new_weights = new int[rots_cnt];
+            // Check if constraints can be satisfied
+            
+
+            // Construct the flow network and find the positive rotations of the min-cut
+            Flow_Network g = new Flow_Network(new_rotations, new_poset, new_weights);
+            List<Rotation> not_selected = g.minCut();
+            // The solution includes all other positive rotations
+            boolean[] dont_select = new boolean[rots_cnt];
+            for (Rotation r : not_selected) dont_select[r.id] = true;
+            List<Rotation> new_solution = new ArrayList<Rotation>();
+            // Their predecessors have to be included as well
+            for (Rotation r : new_rotations)
+            {
+                if (new_weights[r.id] > 0 && !dont_select[r.id]) 
+                {
+                    new_solution.add(r);
+                    new_solution_bits[r.id] = true;
+                }
+            }
+            new_solution = new_poset.must_eliminate(new_solution);
+            Marriage new_mar = Rotations.eliminate_rotations(new_solution, maleOptMatching, 0, new_topological_sorting, new_rots);
+
+            pq.add(new PQ_Element_Egalitarian(new_solution_bits, i + 1, new_mar, new_mar.getECost()));
+            
+        }
+
+        last_returned = pq.poll();
+        
+        long endTime = System.nanoTime();
+        long elapsedTime = endTime - startTime;
+        time = elapsedTime / 1.0E09;
+
+        if (last_returned == null) return null;
+        else return last_returned.solution;
     }
     
     private static String getFinalName()
