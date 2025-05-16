@@ -1,11 +1,11 @@
 package cslab.ntua.gr.algorithms;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.Arrays;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -75,17 +75,19 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
         boolean[] dont_select = new boolean[rots_cnt];
         for (Rotation r : not_selected) dont_select[r.id] = true;
         List<Rotation> solution = new ArrayList<Rotation>();
-        boolean[] solution_bits = new boolean[rots_cnt];
+        
         // Their predecessors have to be included as well
         for (Rotation r : rotations_topsort)
-        {
             if (r.weight > 0 && !dont_select[r.id]) 
-            {
                 solution.add(r);
-                solution_bits[r.id] = true;
-            }
-        }
         solution = poset.must_eliminate(solution);
+
+        boolean[] solution_bits = new boolean[rots_cnt];
+        for (Rotation r : solution)
+                solution_bits[r.id] = true;
+
+        System.out.println("First solution: " + Arrays.toString(solution_bits));
+
         Marriage res = Rotations.eliminate_rotations(solution, maleOptMatching, 0, rotations_topsort, rots);
 
         last_returned = new PQ_Element_Egalitarian(solution_bits, -1, res, res.getECost());
@@ -102,13 +104,12 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
         long startTime = System.nanoTime();
 
         // Insert new candidates to the PQ as deviations from the last solution
-        for (int i = last_returned.last_deviation_index; i < rots_cnt; i++)
+        for (int i = last_returned.last_deviation_index; i < rots_cnt - 1; i++)
         {
             // Create successor constraints
             boolean[] new_solution_bits = new boolean[rots_cnt];
             for (int j = 0; j < i; j++) new_solution_bits[j] = last_returned.solution_bitset[j];
             new_solution_bits[i + 1] = !last_returned.solution_bitset[i + 1];
-            
             // From constraints, generate modified poset, and its optimal solution
             // To construct the new poset, pass the constraints array as a subarray (sublist) from 0 to i+1
             
@@ -119,20 +120,26 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
             // Construct the flow network and find the positive rotations of the min-cut
             Flow_Network g = new Flow_Network(rotations_topsort, new_poset);
             List<Rotation> not_selected = g.minCut();
-            // The solution includes all other positive rotations
+            // The solution includes all other positive rotations (that are unbound)
             boolean[] dont_select = new boolean[rots_cnt];
             for (Rotation r : not_selected) dont_select[r.id] = true;
             List<Rotation> new_solution = new ArrayList<Rotation>();
-            // Their predecessors have to be included as well
             for (Rotation r : rotations_topsort)
-            {
-                if (r.weight > 0 && !dont_select[r.id]) 
-                {
+                if (r.weight > 0 && !dont_select[r.id] && new_poset.constrained_rotations[r.id] == 2) 
                     new_solution.add(r);
-                    new_solution_bits[r.id] = true;
-                }
-            }
+            // Their predecessors have to be included as well
             new_solution = new_poset.must_eliminate(new_solution);
+            // Finally, add the rotations that are included by constraint
+            for (Rotation r : rotations_topsort)
+                if (new_poset.constrained_rotations[r.id] == 1) 
+                    new_solution.add(r);
+
+            for (Rotation r : new_solution)
+                new_solution_bits[r.id] = true;
+
+            System.out.println("New solution bits: " + Arrays.toString(new_solution_bits));
+
+                
             Marriage new_mar = Rotations.eliminate_rotations(new_solution, maleOptMatching, 0, rotations_topsort, rots);
 
             pq.add(new PQ_Element_Egalitarian(new_solution_bits, i + 1, new_mar, new_mar.getECost()));
@@ -213,10 +220,19 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
         for (int i = 2; i <= k; i++) 
         {
             matching = smp.get_next_match();
+            if (matching == null) break;
             smpMetrics = new Metrics(smp, matching, getFinalName());
             if (v) smpMetrics.perform_checks();  
             smpMetrics.printPerformance();
         }
+
+        // Try the existing MinEgalitarian algorithm
+        System.out.println("Running MinEgalitarian...");
+        Abstract_SM_Algorithm smp_eg = new MinEgalitarian(n, menFile, womenFile);
+        Marriage matching_eg = smp_eg.match();
+        Metrics smpEgMetrics = new Metrics(smp_eg, matching_eg, getFinalName());
+        if (v) smpEgMetrics.perform_checks();  
+        smpEgMetrics.printPerformance();
     }
 
 }

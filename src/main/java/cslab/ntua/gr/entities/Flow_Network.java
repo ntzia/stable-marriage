@@ -44,11 +44,21 @@ public class Flow_Network
         graph.put(src, new HashMap<Rotation,Integer>());
         graph.put(dst, new HashMap<Rotation,Integer>());
         // Add edges according to weight of rotations
-        int w;
+        // TODO: here we are iterating over all rotation, but some may not be present in a modified poset
         for (Rotation r : rotations)
         {
-            if (r.weight > 0) graph.get(r).put(dst, r.weight);
-            if (r.weight < 0) graph.get(src).put(r, Math.abs(r.weight));
+            if (r.weight > 0)
+            {
+                Map<Rotation,Integer> m = graph.get(r);
+                if (m == null) continue;
+                m.put(dst, r.weight);
+            }
+            if (r.weight < 0) 
+            {
+                Map<Rotation,Integer> m = graph.get(r);
+                if (m == null) continue;
+                m.put(src, Math.abs(r.weight));
+            }
         }
     }
 

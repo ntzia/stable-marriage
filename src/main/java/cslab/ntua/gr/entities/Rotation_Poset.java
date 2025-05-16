@@ -19,6 +19,9 @@ public class Rotation_Poset
     private Agent[][] agents;
     private ArrayList<Rotation> rotations;
     private Map<Rotation,List<Rotation>> neighbors, neighbors_reversed;
+    // For the case of a poset with constraints: 0 -> excluded, 1 -> included, 2 -> unbound
+    public int[] constrained_rotations = null; 
+
 
     // Use to immediately construct the digraph
     // side = 0 constructs the poset of men rotations (that worsen the men)
@@ -44,13 +47,14 @@ public class Rotation_Poset
     }
 
     // Use to construct the poset if the graph is already ready
-    public Rotation_Poset(int n, int rotation_cnt, ArrayList<Rotation> rotations, Agent[][] agents, Map<Rotation,List<Rotation>> neighbors)
+    public Rotation_Poset(int n, int rotation_cnt, ArrayList<Rotation> rotations, Agent[][] agents, Map<Rotation,List<Rotation>> neighbors, int[] constrained_rotations)
     {
         this.n = n;
         this.count = rotation_cnt;
         this.agents = agents;
         this.rotations = rotations;
         this.neighbors = neighbors;
+        this.constrained_rotations = constrained_rotations;
         this.neighbors_reversed = reverse_graph();
     }
 
@@ -304,12 +308,13 @@ public class Rotation_Poset
      */
     public Rotation_Poset modify_poset(List<Boolean> constraints)
     {
-        System.out.println("Modifying poset with constraints: " + constraints);
+        // System.out.println("Modifying poset with constraints: " + constraints);
+        
         // Check if the constraints can be satisfied
         // The constraints cannot be satisfied if there is a node that must be excluded (false in the boolean array)
         // which has an ancestor that must be included (true in the boolean array)
         List<Rotation> excluded_list = new ArrayList<Rotation>();
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < constraints.size(); i++)
             if (!constraints.get(i)) excluded_list.add(rotations.get(i));
         // For an excluded rotation, we need to exclude all its ancestors
         // Note: we only need to do this for excluded rotations (and not the included ones) because of the topological sort
@@ -323,7 +328,9 @@ public class Rotation_Poset
         int[] updated_constraints = new int[count];
         for (Rotation r : excluded_list)
         {
-            if (constraints.get(r.id)) return null; // Violation
+            if (constraints.size() > r.id)
+                if (constraints.get(r.id)) 
+                    return null; // Violation
             updated_constraints[r.id] = 0;
         }
         for (int i = 0; i < constraints.size(); i++)
@@ -342,13 +349,13 @@ public class Rotation_Poset
             List<Rotation> neighbors_list = new LinkedList<Rotation>();
             for (Rotation neighbor : neighbors.get(r))
             {
-                // Check if the neighbor is included
+                // Check if the neighbor is part of the graph
                 if (updated_constraints[neighbor.id] > 1) neighbors_list.add(neighbor);
             }
             new_neighbors.put(r, neighbors_list);
         }
 
-        return new Rotation_Poset(n, count, rotations, agents, new_neighbors);
+        return new Rotation_Poset(n, count, rotations, agents, new_neighbors, updated_constraints);
     }
 
     /**
