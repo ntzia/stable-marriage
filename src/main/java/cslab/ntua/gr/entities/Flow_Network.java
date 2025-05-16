@@ -18,15 +18,15 @@ public class Flow_Network
     private Map<Rotation,Map<Rotation,Integer>> graph;
     private Rotation src, dst;
 
-    public Flow_Network(ArrayList<Rotation> rots, Rotation_Poset poset, int[] rotation_weights)
+    public Flow_Network(ArrayList<Rotation> rots, Rotation_Poset poset)
     {
         this.rotations = rots;
         this.poset = poset;
-        construct_flow_network(rotation_weights);
+        construct_flow_network();
         this.size = rotations.size() + 2;
     }
 
-    private void construct_flow_network(int[] rotation_weights)
+    private void construct_flow_network()
     {
         // Copy edges from poset (infinite capacity)
         Map<Rotation,List<Rotation>> edges = poset.getNeighbors();
@@ -47,9 +47,8 @@ public class Flow_Network
         int w;
         for (Rotation r : rotations)
         {
-            w = rotation_weights[r.id];
-            if (w > 0) graph.get(r).put(dst, w);
-            if (w < 0) graph.get(src).put(r, Math.abs(w));
+            if (r.weight > 0) graph.get(r).put(dst, r.weight);
+            if (r.weight < 0) graph.get(src).put(r, Math.abs(r.weight));
         }
     }
 
@@ -183,7 +182,7 @@ public class Flow_Network
         agents = smp.getAgents();
         Rotations rots = new Rotations(n, agents, null, null);
         Rotation_Poset poset = new Rotation_Poset(n, agents, 0, rots, null, null);
-        Flow_Network g = new Flow_Network(rots.men_rotations, poset, null);
+        Flow_Network g = new Flow_Network(rots.men_rotations, poset);
         g.minCut();
     }
 }

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Rotation
 {
-    public int size, id;
+    public int size, id, weight;
     public ArrayList<Integer> men, women;
     // {   (m1,w1)   ,   (m2,w2)   ,   ...}
     // each pair (men[i], women[i]) is a pair of this rotation
@@ -52,6 +52,7 @@ public class Rotation
         return true;
     }
 
+    // Also sets the weight of the rotation internally
     public int compute_rotation_weight(Agent[][] agents)
     {
         int cost = 0;
@@ -60,6 +61,7 @@ public class Rotation
             cost += agents[0][this.men.get(i)].getRankOf(this.women.get(i)) + agents[1][this.women.get(i)].getRankOf(this.men.get(i));
             cost -= agents[0][this.men.get(i)].getRankOf(this.women.get(this.getPrevIndex(i))) + agents[1][this.women.get(this.getPrevIndex(i))].getRankOf(this.men.get(i));
         }   
+        this.weight = cost;
         return cost;
     }
 

@@ -1,9 +1,11 @@
 package cslab.ntua.gr.algorithms;
 
 import java.util.ArrayList;
-import java.util.BitSet;
+import java.util.Arrays;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -30,6 +32,9 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
     int rots_cnt = -1;
     Marriage maleOptMatching = null;
     Marriage femaleOptMatching = null;
+    Rotations rots = null;
+    Rotation_Poset poset = null;
+    ArrayList<Rotation> rotations_topsort = null;
 
     public TopkEgalitarian(int n, String menFileName, String womenFileName, int k)
     {
@@ -55,15 +60,16 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
         femaleOptMatching = femaleOpt.match();
 
         // Compute the rotation poset
-        Rotations rots = new Rotations(n, agents, maleOptMatching, femaleOptMatching);
+        rots = new Rotations(n, agents, maleOptMatching, femaleOptMatching);
         this.rots_cnt = rots.count;
-        Rotation_Poset poset = new Rotation_Poset(n, agents, 0, rots, maleOptMatching, femaleOptMatching);
-        ArrayList<Rotation> rotations_topsort = poset.topSort();
+        poset = new Rotation_Poset(n, agents, 0, rots, maleOptMatching, femaleOptMatching);
+        rotations_topsort = poset.topSort();
+        // Rename all indexes and data structures for rotations so that they are consistent with the topological sort
+        poset.rename_ids(rotations_topsort);
         // Compute the weight of the rotations
-        int[] weights = new int[rots.count];
-        for (Rotation r : rotations_topsort) weights[r.id] = r.compute_rotation_weight(agents);
+        for (Rotation r : rotations_topsort) r.compute_rotation_weight(agents);
         // Construct the flow network and find the positive rotations of the min-cut
-        Flow_Network g = new Flow_Network(rotations_topsort, poset, weights);
+        Flow_Network g = new Flow_Network(rotations_topsort, poset);
         List<Rotation> not_selected = g.minCut();
         // The solution includes all other positive rotations
         boolean[] dont_select = new boolean[rots_cnt];
@@ -73,7 +79,7 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
         // Their predecessors have to be included as well
         for (Rotation r : rotations_topsort)
         {
-            if (weights[r.id] > 0 && !dont_select[r.id]) 
+            if (r.weight > 0 && !dont_select[r.id]) 
             {
                 solution.add(r);
                 solution_bits[r.id] = true;
@@ -104,32 +110,30 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
             new_solution_bits[i + 1] = !last_returned.solution_bitset[i + 1];
             
             // From constraints, generate modified poset, and its optimal solution
-            Rotations new_rots = null;
-            ArrayList<Rotation> new_rotations = new ArrayList<Rotation>();
-            Rotation_Poset new_poset = null;
-            List<Rotation> new_topological_sorting = new_poset.topSort();
-            int[] new_weights = new int[rots_cnt];
-            // Check if constraints can be satisfied
+            // To construct the new poset, pass the constraints array as a subarray (sublist) from 0 to i+1
             
+            Rotation_Poset new_poset = poset.modify_poset(IntStream.range(0, i + 1).mapToObj(j -> new_solution_bits[j]).collect(Collectors.toList()));
+            // TODO: possible optimization: save the poset in the PQ and start the modification for successors from that
+            if (new_poset == null) continue;
 
             // Construct the flow network and find the positive rotations of the min-cut
-            Flow_Network g = new Flow_Network(new_rotations, new_poset, new_weights);
+            Flow_Network g = new Flow_Network(rotations_topsort, new_poset);
             List<Rotation> not_selected = g.minCut();
             // The solution includes all other positive rotations
             boolean[] dont_select = new boolean[rots_cnt];
             for (Rotation r : not_selected) dont_select[r.id] = true;
             List<Rotation> new_solution = new ArrayList<Rotation>();
             // Their predecessors have to be included as well
-            for (Rotation r : new_rotations)
+            for (Rotation r : rotations_topsort)
             {
-                if (new_weights[r.id] > 0 && !dont_select[r.id]) 
+                if (r.weight > 0 && !dont_select[r.id]) 
                 {
                     new_solution.add(r);
                     new_solution_bits[r.id] = true;
                 }
             }
             new_solution = new_poset.must_eliminate(new_solution);
-            Marriage new_mar = Rotations.eliminate_rotations(new_solution, maleOptMatching, 0, new_topological_sorting, new_rots);
+            Marriage new_mar = Rotations.eliminate_rotations(new_solution, maleOptMatching, 0, rotations_topsort, rots);
 
             pq.add(new PQ_Element_Egalitarian(new_solution_bits, i + 1, new_mar, new_mar.getECost()));
             

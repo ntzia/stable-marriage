@@ -48,10 +48,9 @@ public class MinEgalitarian extends Abstract_SM_Algorithm
         Rotation_Poset poset = new Rotation_Poset(n, agents, 0, rots, maleOptMatching, femaleOptMatching);
         List<Rotation> topological_sorting = poset.topSort();
         // Compute the weight of the rotations
-        int[] weights = new int[rots.count];
-        for (Rotation r : rotations) weights[r.id] = r.compute_rotation_weight(agents);
+        for (Rotation r : rotations) r.compute_rotation_weight(agents);
         // Construct the flow network and find the positive rotations of the min-cut
-        Flow_Network g = new Flow_Network(rotations, poset, weights);
+        Flow_Network g = new Flow_Network(rotations, poset);
         List<Rotation> not_selected = g.minCut();
         // The solution includes all other positive rotations
         boolean[] dont_select = new boolean[rots.count];
@@ -60,7 +59,7 @@ public class MinEgalitarian extends Abstract_SM_Algorithm
         // Their predecessors have to be included as well
         for (Rotation r : rotations)
         {
-            if (weights[r.id] > 0 && !dont_select[r.id]) solution.add(r);
+            if (r.weight > 0 && !dont_select[r.id]) solution.add(r);
         }
         solution = poset.must_eliminate(solution);
         Marriage res = Rotations.eliminate_rotations(solution, maleOptMatching, 0, topological_sorting, rots);

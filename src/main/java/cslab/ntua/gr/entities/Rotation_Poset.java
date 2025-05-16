@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 import cslab.ntua.gr.algorithms.Abstract_SM_Algorithm;
 import cslab.ntua.gr.algorithms.GS_FemaleOpt;
@@ -39,6 +40,17 @@ public class Rotation_Poset
         this.count = rotations.count;
         // Possibly multi-graph, so remove duplicate edges (also removes self-loops)
         remove_duplicates();
+        this.neighbors_reversed = reverse_graph();
+    }
+
+    // Use to construct the poset if the graph is already ready
+    public Rotation_Poset(int n, int rotation_cnt, ArrayList<Rotation> rotations, Agent[][] agents, Map<Rotation,List<Rotation>> neighbors)
+    {
+        this.n = n;
+        this.count = rotation_cnt;
+        this.agents = agents;
+        this.rotations = rotations;
+        this.neighbors = neighbors;
         this.neighbors_reversed = reverse_graph();
     }
 
@@ -244,6 +256,99 @@ public class Rotation_Poset
             if (visited[i]) res.add(rotations.get(i));
         }
         return res;
+    }
+
+    /**
+     * Given a list of rotations, modify the ids of the rotations to match the indexing of the list.
+     * Additionally, modify the data structures of this object (list of rotations, neighbors, etc.)
+     * so that they are consistent with the new ids.
+     */
+    public void rename_ids(ArrayList<Rotation> renaming_list)
+    {
+        // Build a hashmap that maps old ids to new ids
+        Map<Integer, Integer> id_map_old_to_new = new HashMap<Integer, Integer>();
+        for (int i = 0; i < renaming_list.size(); i++)
+            id_map_old_to_new.put(renaming_list.get(i).id, i);
+
+        // Now, we need to update the graph structure
+        // Since we are using a hashmap with the rotation ids as hashcodes, we can keep the lists the same
+        // and simply rebuild the hashmap after changing the id of the rotation objects
+        Map<Rotation,List<Rotation>> updated_neighbors = new HashMap<Rotation,List<Rotation>>();
+        for (int i = 0; i < renaming_list.size(); i++)
+        {
+            Rotation r = renaming_list.get(i);
+            List<Rotation> neighbors_list = neighbors.get(r);
+            // Update the id of the rotation
+            r.id = i;
+            // Insert the list in a new map
+            updated_neighbors.put(r, neighbors_list);
+        }
+        this.neighbors = updated_neighbors;
+
+        // Now we need to update the reversed neighbors list
+        // Simply reverse the neighbors list
+        this.neighbors_reversed = reverse_graph();
+
+        // Finally, replace the list of rotations with the new one
+        this.rotations = renaming_list;
+    }
+
+    /**
+     * Modifies the poset according to a set of inclusion/exclusion constraints.
+     * The constraints are given as a boolean list, that indicates which rotations are included/excluded.
+     * The function returns null if the constraints cannot be satisfied,
+     * or otherwise a new poset (new object) that has a new graph structure.
+     * The rest of the data structures of the object (rotation list, agents, etc.) are pointing to the current object.
+     * The indexes of rotations remain unchanged.
+     * !! Caution: the function assumes that the rotation indexing follows a topological sort.
+     */
+    public Rotation_Poset modify_poset(List<Boolean> constraints)
+    {
+        System.out.println("Modifying poset with constraints: " + constraints);
+        // Check if the constraints can be satisfied
+        // The constraints cannot be satisfied if there is a node that must be excluded (false in the boolean array)
+        // which has an ancestor that must be included (true in the boolean array)
+        List<Rotation> excluded_list = new ArrayList<Rotation>();
+        for (int i = 0; i < count; i++)
+            if (!constraints.get(i)) excluded_list.add(rotations.get(i));
+        // For an excluded rotation, we need to exclude all its ancestors
+        // Note: we only need to do this for excluded rotations (and not the included ones) because of the topological sort
+        // If we constrain a rotation then all its ancestors need to be constrained as well (either included or excluded=error)
+        excluded_list.addAll(cant_eliminate(excluded_list));
+        // Remove duplicates from the list representation of exclusions
+        excluded_list.stream().distinct().collect(Collectors.toList());
+
+        // Update the constraints list and check for any violations
+        // 0 -> excluded, 1 -> included, 2 -> unbound
+        int[] updated_constraints = new int[count];
+        for (Rotation r : excluded_list)
+        {
+            if (constraints.get(r.id)) return null; // Violation
+            updated_constraints[r.id] = 0;
+        }
+        for (int i = 0; i < constraints.size(); i++)
+        {
+            if (constraints.get(i)) updated_constraints[i] = 1;
+            else updated_constraints[i] = 2;
+        }
+
+        // We are ready to allocate memory for a new graph
+        Map<Rotation,List<Rotation>> new_neighbors = new HashMap<Rotation,List<Rotation>>();
+        for (int i = 0; i < count; i++)
+        {
+            if (updated_constraints[i] <= 1) continue; // Included and excluded both result in deletion from the graph
+            // Create a new list of neighbors for the rotation
+            Rotation r = rotations.get(i);
+            List<Rotation> neighbors_list = new LinkedList<Rotation>();
+            for (Rotation neighbor : neighbors.get(r))
+            {
+                // Check if the neighbor is included
+                if (updated_constraints[neighbor.id] > 1) neighbors_list.add(neighbor);
+            }
+            new_neighbors.put(r, neighbors_list);
+        }
+
+        return new Rotation_Poset(n, count, rotations, agents, new_neighbors);
     }
 
     /**
