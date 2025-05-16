@@ -55,9 +55,9 @@ public class Flow_Network
             }
             if (r.weight < 0) 
             {
-                Map<Rotation,Integer> m = graph.get(r);
+                Map<Rotation,Integer> m = graph.get(src);
                 if (m == null) continue;
-                m.put(src, Math.abs(r.weight));
+                m.put(r, Math.abs(r.weight));
             }
         }
     }
