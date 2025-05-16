@@ -1,7 +1,9 @@
 package cslab.ntua.gr.algorithms;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.HashSet;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -20,6 +22,10 @@ import cslab.ntua.gr.tools.Metrics;
 
 public class EnumerateAllSM extends Abstract_SM_Algorithm
 {
+    private Rotation_Poset poset = null;
+    private List<Rotation> topological_sorting = null;
+
+
     public EnumerateAllSM(int n, String menFileName, String womenFileName)
     {
         super(n, menFileName, womenFileName);
@@ -49,8 +55,8 @@ public class EnumerateAllSM extends Abstract_SM_Algorithm
         // Compute the rotation poset
         Rotations rots = new Rotations(n, agents, maleOptMatching, femaleOptMatching);
         ArrayList<Rotation> rotations = rots.men_rotations;
-        Rotation_Poset poset = new Rotation_Poset(n, agents, 0, rots, maleOptMatching, femaleOptMatching);
-        List<Rotation> topological_sorting = poset.topSort();
+        poset = new Rotation_Poset(n, agents, 0, rots, maleOptMatching, femaleOptMatching);
+        topological_sorting = poset.topSort();
 
         // Enumerate all closed subsets of the rotation poset
         // Go through the rotations in topsort order
@@ -58,13 +64,29 @@ public class EnumerateAllSM extends Abstract_SM_Algorithm
         // If we do not add it, then call cant_eliminate to produce a list of disallowed rotations
         // Transform the list into a set so that at any point we have a set of disallowed rotations that we can check
         // This will be a recursive function that starts with i=0 and goes up to the number of rotations
-        
+        enumerate(0, new HashSet<Rotation>(), res);
 
         long endTime = System.nanoTime();
         long elapsedTime = endTime - startTime;
         time = elapsedTime / 1.0E09;
 
         return res;
+    }
+
+    private void enumerate(int i, HashSet<Rotation> disallowed_rotations, List<Marriage> res)
+    {
+        // Base case
+        if (i == topological_sorting.size()) return;
+
+        // Try adding the current rotation
+        Rotation r = topological_sorting.get(i);
+        HashSet<Rotation> new_disallowed_rotations = new HashSet<Rotation>(disallowed_rotations);
+        new_disallowed_rotations.add(r);
+        new_disallowed_rotations.addAll(poset.cant_eliminate(Arrays.asList(r)));
+        enumerate(i + 1, new_disallowed_rotations, res);
+
+        // Try not adding the current rotation
+        enumerate(i + 1, new_disallowed_rotations, res);
     }
 
     private static String getFinalName()
