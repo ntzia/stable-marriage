@@ -117,7 +117,7 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
 
             // From constraints, generate modified poset, and its optimal solution
             // To construct the new poset, pass the constraints array as a subarray (sublist) from 0 to i+1
-            Rotation_Poset new_poset = poset.modify_poset(IntStream.range(0, i + 1).mapToObj(j -> new_solution_bits[j]).collect(Collectors.toList()));
+            Rotation_Poset new_poset = poset.modify_poset(IntStream.range(0, i + 2).mapToObj(j -> new_solution_bits[j]).collect(Collectors.toList()));
             // TODO: possible optimization: save the poset in the PQ and start the modification for successors from that
             if (new_poset == null) continue;
 

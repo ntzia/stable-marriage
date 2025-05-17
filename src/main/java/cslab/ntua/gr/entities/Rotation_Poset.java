@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.stream.Collectors;
+import java.util.Arrays;
 
 import cslab.ntua.gr.algorithms.Abstract_SM_Algorithm;
 import cslab.ntua.gr.algorithms.GS_FemaleOpt;
@@ -326,6 +327,7 @@ public class Rotation_Poset
         // Update the constraints list and check for any violations
         // 0 -> excluded, 1 -> included, 2 -> unbound
         int[] updated_constraints = new int[count];
+        Arrays.fill(updated_constraints, -1);
         for (Rotation r : excluded_list)
         {
             if (constraints.size() > r.id)
@@ -334,10 +336,11 @@ public class Rotation_Poset
             updated_constraints[r.id] = 0;
         }
         for (int i = 0; i < constraints.size(); i++)
-        {
-            if (constraints.get(i)) updated_constraints[i] = 1;
-            else updated_constraints[i] = 2;
-        }
+            if (constraints.get(i)) 
+                updated_constraints[i] = 1;
+        for (int i = 0; i < constraints.size(); i++)
+            if (updated_constraints[i] == -1) 
+                updated_constraints[i] = 2; // Unbound
 
         // We are ready to allocate memory for a new graph
         Map<Rotation,List<Rotation>> new_neighbors = new HashMap<Rotation,List<Rotation>>();

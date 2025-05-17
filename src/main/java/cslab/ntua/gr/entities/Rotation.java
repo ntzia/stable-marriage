@@ -82,6 +82,7 @@ public class Rotation
         return women.contains(w);
     }
 
+    // TODO: this is slow when rotations are inserted in a hashmap
     @Override
     public boolean equals(Object obj) 
     {
