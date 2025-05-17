@@ -50,7 +50,7 @@ public class MinEgalitarian extends Abstract_SM_Algorithm
         // Compute the weight of the rotations
         for (Rotation r : rotations) r.compute_rotation_weight(agents);
         // Construct the flow network and find the positive rotations of the min-cut
-        Flow_Network g = new Flow_Network(rotations, poset);
+        Flow_Network g = new Flow_Network(poset);
         List<Rotation> not_selected = g.minCut();
         // The solution includes all other positive rotations
         boolean[] dont_select = new boolean[rots.count];

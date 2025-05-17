@@ -3,6 +3,7 @@ package cslab.ntua.gr.algorithms;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.LinkedList;
 import java.util.HashSet;
 
 import org.apache.commons.cli.CommandLine;
@@ -24,6 +25,9 @@ public class EnumerateAllSM extends Abstract_SM_Algorithm
 {
     private Rotation_Poset poset = null;
     private List<Rotation> topological_sorting = null;
+    Marriage maleOptMatching = null;
+    Marriage femaleOptMatching = null;
+    Rotations rots = null;
 
 
     public EnumerateAllSM(int n, String menFileName, String womenFileName)
@@ -49,12 +53,11 @@ public class EnumerateAllSM extends Abstract_SM_Algorithm
 
         // Initialize
         Abstract_SM_Algorithm maleOpt = new GS_MaleOpt(n, agents);
-        Marriage maleOptMatching = maleOpt.match();
+        maleOptMatching = maleOpt.match();
         Abstract_SM_Algorithm femaleOpt = new GS_FemaleOpt(n, agents);
-        Marriage femaleOptMatching = femaleOpt.match();
+        femaleOptMatching = femaleOpt.match();
         // Compute the rotation poset
-        Rotations rots = new Rotations(n, agents, maleOptMatching, femaleOptMatching);
-        ArrayList<Rotation> rotations = rots.men_rotations;
+        rots = new Rotations(n, agents, maleOptMatching, femaleOptMatching);
         poset = new Rotation_Poset(n, agents, 0, rots, maleOptMatching, femaleOptMatching);
         topological_sorting = poset.topSort();
 
@@ -64,7 +67,7 @@ public class EnumerateAllSM extends Abstract_SM_Algorithm
         // If we do not add it, then call cant_eliminate to produce a list of disallowed rotations
         // Transform the list into a set so that at any point we have a set of disallowed rotations that we can check
         // This will be a recursive function that starts with i=0 and goes up to the number of rotations
-        enumerate(0, new HashSet<Rotation>(), res);
+        enumerate(0, new HashSet<Rotation>(), new LinkedList<Rotation>(), res);
 
         long endTime = System.nanoTime();
         long elapsedTime = endTime - startTime;
@@ -73,20 +76,30 @@ public class EnumerateAllSM extends Abstract_SM_Algorithm
         return res;
     }
 
-    private void enumerate(int i, HashSet<Rotation> disallowed_rotations, List<Marriage> res)
+    private void enumerate(int i, HashSet<Rotation> disallowed_rotations, LinkedList<Rotation> chosen_rotations, List<Marriage> res)
     {
         // Base case
-        if (i == topological_sorting.size()) return;
+        if (i == topological_sorting.size())
+        {
+            res.add(Rotations.eliminate_rotations(chosen_rotations, maleOptMatching, 0, topological_sorting, rots));
+            return;
+        }
+
+        Rotation r = topological_sorting.get(i);
 
         // Try adding the current rotation
-        Rotation r = topological_sorting.get(i);
+        if (!disallowed_rotations.contains(topological_sorting.get(i))) 
+        {  
+            chosen_rotations.add(r);
+            enumerate(i + 1, disallowed_rotations, chosen_rotations, res);
+            chosen_rotations.removeLast();
+        }
+
+        // Try not adding the current rotation
         HashSet<Rotation> new_disallowed_rotations = new HashSet<Rotation>(disallowed_rotations);
         new_disallowed_rotations.add(r);
         new_disallowed_rotations.addAll(poset.cant_eliminate(Arrays.asList(r)));
-        enumerate(i + 1, new_disallowed_rotations, res);
-
-        // Try not adding the current rotation
-        enumerate(i + 1, new_disallowed_rotations, res);
+        enumerate(i + 1, new_disallowed_rotations, chosen_rotations, res);
     }
 
     private static String getFinalName()

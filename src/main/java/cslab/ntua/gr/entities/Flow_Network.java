@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Collection;
 
 import cslab.ntua.gr.algorithms.Abstract_SM_Algorithm;
 import cslab.ntua.gr.algorithms.GS_MaleOpt;
@@ -13,15 +14,15 @@ import cslab.ntua.gr.algorithms.GS_MaleOpt;
 public class Flow_Network
 {
     private int size;
-    private ArrayList<Rotation> rotations;
+    private Collection<Rotation> rotations;
     private Rotation_Poset poset;
     private Map<Rotation,Map<Rotation,Integer>> graph;
     private Rotation src, dst;
 
-    public Flow_Network(ArrayList<Rotation> rots, Rotation_Poset poset)
+    public Flow_Network(Rotation_Poset poset)
     {
-        this.rotations = rots;
         this.poset = poset;
+        this.rotations = poset.getNeighbors().keySet();
         construct_flow_network();
         this.size = rotations.size() + 2;
     }
@@ -44,7 +45,6 @@ public class Flow_Network
         graph.put(src, new HashMap<Rotation,Integer>());
         graph.put(dst, new HashMap<Rotation,Integer>());
         // Add edges according to weight of rotations
-        // TODO: here we are iterating over all rotation, but some may not be present in a modified poset
         for (Rotation r : rotations)
         {
             if (r.weight > 0)
@@ -63,17 +63,18 @@ public class Flow_Network
     }
 
     // Returns true if there is a path from source 's' to sink 't' in residual graph. Also fills parent[] to store the path 
-    private boolean bfs(Map<Rotation,Map<Rotation,Integer>> rGraph, Rotation s, Rotation t, Rotation[] parent) 
+    private boolean bfs(Map<Rotation,Map<Rotation,Integer>> rGraph, Rotation s, Rotation t, Map<Rotation, Rotation> parent) 
     {
-        // Create a visited array and mark 
+        // Create a visited set and mark 
         // all vertices as not visited     
-        boolean[] visited = new boolean[size];
+        Map<Rotation, Boolean> visited = new HashMap<Rotation, Boolean>();
+        for (Rotation i : rGraph.keySet()) visited.put(i, false);
         // Create a queue, enqueue source vertex
         // and mark source vertex as visited     
         Queue<Rotation> q = new LinkedList<Rotation>();
         q.add(s);
-        visited[s.id] = true;
-        parent[s.id] = null;
+        visited.put(s, true);
+        parent.put(s, null);
         // Standard BFS Loop     
         Map<Rotation,Integer> neighbors;
         while (!q.isEmpty()) 
@@ -83,29 +84,29 @@ public class Flow_Network
             neighbors = rGraph.get(i);
             for (Rotation j: neighbors.keySet())
             {
-                if (rGraph.get(i).get(j) > 0 && !visited[j.id]) 
+                if (rGraph.get(i).get(j) > 0 && !visited.get(j)) 
                 {
                     q.offer(j);
-                    visited[j.id] = true;
-                    parent[j.id] = i;
+                    visited.put(j, true);
+                    parent.put(j, i);
                 }
             }
         }
         // If we reached sink in BFS starting 
         // from source, then return true, else false     
-        return (visited[t.id] == true);
+        return (visited.get(t) == true);
     }
      
     // A DFS based function to find all reachable vertices from s. The function marks visited[i] as true if i is reachable from s. 
     // The initial values in visited[] must be false. We can also use BFS to find reachable vertices
-    private void dfs(Map<Rotation,Map<Rotation,Integer>> rGraph, Rotation s, boolean[] visited) 
+    private void dfs(Map<Rotation,Map<Rotation,Integer>> rGraph, Rotation s, Map<Rotation, Boolean> visited) 
     {
         Map<Rotation,Integer> neighbors;
-        visited[s.id] = true;
+        visited.put(s, true);
         neighbors = rGraph.get(s);
         for (Rotation i: neighbors.keySet())
         {
-            if (rGraph.get(s).get(i) > 0 && !visited[i.id]) dfs(rGraph, i, visited);
+            if (rGraph.get(s).get(i) > 0 && !visited.get(i)) dfs(rGraph, i, visited);
         }
     }
  
@@ -125,30 +126,31 @@ public class Flow_Network
             rGraph.put(i, new HashMap<Rotation,Integer>());
             rGraph.get(i).putAll(graph.get(i));
         }
-        // This array is filled by BFS and to store path
-        Rotation[] parent = new Rotation[size]; 
-        // Augment the flow while tere is path from source to sink  
+        // This array is filled by BFS to store path
+        Map<Rotation, Rotation> parent = new HashMap<Rotation, Rotation>();
+        // Augment the flow while there is path from source to sink  
         int pathFlow;   
         while (bfs(rGraph, s, t, parent)) 
         {         
             // Find minimum residual capacity of the edges along the path filled by BFS. 
             // Or we can say find the maximum flow through the path found.
             pathFlow = Integer.MAX_VALUE;         
-            for (v = t; v != s; v = parent[v.id]) 
+            for (v = t; v != s; v = parent.get(v)) 
             {
-                u = parent[v.id];
+                u = parent.get(v);
                 pathFlow = Math.min(pathFlow, rGraph.get(u).get(v));
             }
             // update residual capacities of the edges and reverse edges along the path
-            for (v = t; v != s; v = parent[v.id]) 
+            for (v = t; v != s; v = parent.get(v)) 
             {
-                u = parent[v.id];
+                u = parent.get(v);
                 remove_flow(rGraph, u, v, pathFlow);
                 add_flow(rGraph, v, u, pathFlow);
             }
         }
         // Flow is maximum now, find vertices reachable from s     
-        boolean[] isVisited = new boolean[size];     
+        Map<Rotation, Boolean> isVisited = new HashMap<Rotation, Boolean>();
+        for (Rotation i : rGraph.keySet()) isVisited.put(i, false); 
         dfs(rGraph, s, isVisited);
         // Print all edges that are from a reachable vertex to non-reachable vertex in the original graph     
         Map<Rotation,Integer> neighbors;
@@ -157,7 +159,7 @@ public class Flow_Network
             neighbors = rGraph.get(i);
             for (Rotation j: neighbors.keySet())
             {
-                if (isVisited[i.id] && !isVisited[j.id])
+                if (isVisited.get(i) && !isVisited.get(j))
                 {
                     if (j.id == size - 1) res.add(i);
                 }
@@ -192,7 +194,7 @@ public class Flow_Network
         agents = smp.getAgents();
         Rotations rots = new Rotations(n, agents, null, null);
         Rotation_Poset poset = new Rotation_Poset(n, agents, 0, rots, null, null);
-        Flow_Network g = new Flow_Network(rots.men_rotations, poset);
+        Flow_Network g = new Flow_Network(poset);
         g.minCut();
     }
 }
