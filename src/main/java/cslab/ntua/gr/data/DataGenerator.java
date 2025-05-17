@@ -11,13 +11,13 @@ public abstract class DataGenerator
 	protected int datasetSize;
 	protected PrintStream out = System.out;
 	
-	private List<LinkedList<Integer>> buffer;
+	private List<List<Integer>> buffer;
 	private int flushThr;
 	
 	public DataGenerator(int datasetSize)
 	{
 		this.datasetSize = datasetSize;	
-		this.buffer = new LinkedList<LinkedList<Integer>>();
+		this.buffer = new LinkedList<List<Integer>>();
 		this.flushThr = 100;
 	}
 
@@ -38,7 +38,7 @@ public abstract class DataGenerator
 		}
 	}
 	
-	protected abstract LinkedList<Integer> line();
+	protected abstract List<Integer> line();
 	
 	/**
 	 * Creates the dataset.

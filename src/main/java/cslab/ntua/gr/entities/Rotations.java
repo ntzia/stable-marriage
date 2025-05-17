@@ -57,7 +57,7 @@ public class Rotations
         for (Rotation r : rs) to_be_eliminated[r.id] = true;
         for (Rotation r : topological_sorting) 
             if (to_be_eliminated[r.id])
-                res = rots.eliminate(res, r.id, side);
+                res = rots.eliminate(res, r, side);
         return res;
     }
 
@@ -253,6 +253,36 @@ public class Rotations
         Marriage res = new Marriage(m);
         if (side == 0) r = men_rotations.get(rotation_no);
         else r = women_rotations.get(rotation_no);
+
+        if (side == 0)
+        {
+            for (int i = 0; i < r.size; i++)
+            {
+                man = r.men.get(i);
+                woman = r.women.get(r.getPrevIndex(i));
+                res.mIndex[0][man] = agents[0][man].getRankOf(woman);
+                res.mIndex[1][woman] = agents[1][woman].getRankOf(man);
+                // System.out.println("Man " + man + " marries woman " + woman);
+            }            
+        }
+        else
+        {
+            for (int i = 0; i < r.size; i++)
+            {
+                woman = r.women.get(i);
+                man = r.men.get(r.getPrevIndex(i));
+                res.mIndex[0][man] = agents[0][man].getRankOf(woman);
+                res.mIndex[1][woman] = agents[1][woman].getRankOf(man);
+                // System.out.println("Man " + man + " marries woman " + woman);
+            }            
+        }
+        return res;
+    }
+
+    public Marriage eliminate(Marriage m, Rotation r, int side)
+    {
+        int man, woman;
+        Marriage res = new Marriage(m);
 
         if (side == 0)
         {

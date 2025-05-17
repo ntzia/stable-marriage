@@ -5,9 +5,12 @@ import java.util.List;
 
 import cslab.ntua.gr.algorithms.EnumerateAllSM;
 import cslab.ntua.gr.algorithms.TopkEgalitarian;
+import cslab.ntua.gr.data.DataGenerator;
+import cslab.ntua.gr.data.UniformDataGenerator;
 import cslab.ntua.gr.entities.Agent;
 import cslab.ntua.gr.entities.Marriage;
 import cslab.ntua.gr.tools.Metrics;
+import cslab.ntua.gr.data.DataPrinter;
 
 public class TestTopkEgalitarian
 {
@@ -17,7 +20,7 @@ public class TestTopkEgalitarian
         int n;
         Agent[][] agents;
         Marriage m;
-        int n_arr[] = {10, 20, 30, 40};
+        int n_arr[] = {50, 100, 200, 500};
 
         // Test 1
         for (int i = 0; i <= 3; i++)
@@ -43,6 +46,8 @@ public class TestTopkEgalitarian
                 }
             }
 
+            agents = smp.getAgents();
+
             // Check if topk returns solutions in order of egalitarian cost
             for (int j = 0; j < topk_marriages.size() - 1; j++)
             {
@@ -53,11 +58,18 @@ public class TestTopkEgalitarian
                     smpMetrics.printPerformance();
                     smpMetrics = new Metrics(smp, topk_marriages.get(j + 1), "Top-k (k=" + (j + 1) + ")");
                     smpMetrics.printPerformance();
-                    break;
+
+                    DataPrinter printer_men = new DataPrinter(agents[0]);
+                    printer_men.setOutputFile("test_men");
+			        printer_men.create();
+                    DataPrinter printer_women = new DataPrinter(agents[1]);
+                    printer_women.setOutputFile("test_women");
+			        printer_women.create();
+                    return;
+
+                    // break;
                 }
             }
-
-            agents = smp.getAgents();
 
             System.out.println("Checking against EnumerateAllSM...");
             EnumerateAllSM allsm = new EnumerateAllSM(n, agents);

@@ -322,7 +322,7 @@ public class Rotation_Poset
         // If we constrain a rotation then all its ancestors need to be constrained as well (either included or excluded=error)
         excluded_list.addAll(cant_eliminate(excluded_list));
         // Remove duplicates from the list representation of exclusions
-        excluded_list.stream().distinct().collect(Collectors.toList());
+        excluded_list = excluded_list.stream().distinct().collect(Collectors.toList());
 
         // Update the constraints list and check for any violations
         // 0 -> excluded, 1 -> included, 2 -> unbound
