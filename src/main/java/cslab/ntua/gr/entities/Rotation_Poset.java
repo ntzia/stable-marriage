@@ -338,7 +338,7 @@ public class Rotation_Poset
         for (int i = 0; i < constraints.size(); i++)
             if (constraints.get(i)) 
                 updated_constraints[i] = 1;
-        for (int i = 0; i < constraints.size(); i++)
+        for (int i = 0; i < updated_constraints.length; i++)
             if (updated_constraints[i] == -1) 
                 updated_constraints[i] = 2; // Unbound
 

@@ -101,8 +101,8 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
     {
         long startTime = System.nanoTime();
 
-        System.out.print("Winner: ");
-        prettyPrintBooleanConstraints(last_returned.solution_bitset, last_returned.last_deviation_index);
+        // System.out.print("Winner: ");
+        // prettyPrintBooleanConstraints(last_returned.solution_bitset, last_returned.last_deviation_index);
 
         // Insert new candidates to the PQ as deviations from the last solution
         for (int i = last_returned.last_deviation_index; i < rots_cnt - 1; i++)
@@ -112,8 +112,8 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
             for (int j = 0; j <= i; j++) new_solution_bits[j] = last_returned.solution_bitset[j];
             new_solution_bits[i + 1] = !last_returned.solution_bitset[i + 1];
 
-            System.out.print("Successors: ");
-            prettyPrintBooleanConstraints(new_solution_bits, i + 1);
+            // System.out.print("Successors: ");
+            // prettyPrintBooleanConstraints(new_solution_bits, i + 1);
 
             // From constraints, generate modified poset, and its optimal solution
             // To construct the new poset, pass the constraints array as a subarray (sublist) from 0 to i+1
