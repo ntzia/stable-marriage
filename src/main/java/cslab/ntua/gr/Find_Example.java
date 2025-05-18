@@ -82,7 +82,7 @@ public class Find_Example
                 for (int j = 0; j < n; j++)
                     System.out.println(("Woman " + j + ": " + agents[1][j].getPrefList()).replace("[", "").replace("]", "").replace(",", "").replace(" ", ""));
 
-                Rotation_Poset poset = new Rotation_Poset(n, agents, 0, rots, null, null);
+                Rotation_Poset poset = new Rotation_Poset(agents, 0, rots, null, null);
                 System.out.println("Rotation Poset:");
                 System.out.println(poset);
 

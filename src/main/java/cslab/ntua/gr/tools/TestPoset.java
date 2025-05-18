@@ -42,7 +42,7 @@ public class TestPoset
         m = smp.match();  
         rots = new Rotations(n, agents, null, null);
         System.out.print("Constructing graph for men: ");
-        poset = new Rotation_Poset(n, agents, 0, rots, null, null);
+        poset = new Rotation_Poset(agents, 0, rots, null, null);
         System.out.println("The graph " + (isDag(poset)?"is":"is not") + " a dag");
         System.out.print("MaleOpt->FemaleOpt: ");
         order = poset.topSort();
@@ -67,7 +67,7 @@ public class TestPoset
         else System.out.println("Success!!");
 
         System.out.print("Constructing graph for women: ");
-        poset = new Rotation_Poset(n, agents, 1, rots, null, null);
+        poset = new Rotation_Poset(agents, 1, rots, null, null);
         System.out.println("The graph " + (isDag(poset)?"is":"is not") + " a dag");
         System.out.print("FemaleOpt->MaleOpt: ");
         order = poset.topSort();
@@ -100,7 +100,7 @@ public class TestPoset
         m = smp.match();  
         rots = new Rotations(n, agents, null, null);
         System.out.print("Constructing graph for men: ");
-        poset = new Rotation_Poset(n, agents, 0, rots, null, null);
+        poset = new Rotation_Poset(agents, 0, rots, null, null);
         System.out.println("The graph " + (isDag(poset)?"is":"is not") + " a dag");
         System.out.print("MaleOpt->FemaleOpt: ");
         order = poset.topSort();
@@ -125,7 +125,7 @@ public class TestPoset
         else System.out.println("Success!!");
 
         System.out.print("Constructing graph for women: ");
-        poset = new Rotation_Poset(n, agents, 1, rots, null, null);
+        poset = new Rotation_Poset(agents, 1, rots, null, null);
         System.out.println("The graph " + (isDag(poset)?"is":"is not") + " a dag");
         System.out.print("FemaleOpt->MaleOpt: ");
         order = poset.topSort();
@@ -158,7 +158,7 @@ public class TestPoset
         m = smp.match();  
         rots = new Rotations(n, agents, null, null);
         System.out.print("Constructing graph for men: ");
-        poset = new Rotation_Poset(n, agents, 0, rots, null, null);
+        poset = new Rotation_Poset(agents, 0, rots, null, null);
         System.out.println("The graph " + (isDag(poset)?"is":"is not") + " a dag");
         System.out.print("MaleOpt->FemaleOpt: ");
         order = poset.topSort();
@@ -183,7 +183,7 @@ public class TestPoset
         else System.out.println("Success!!");
 
         System.out.print("Constructing graph for women: ");
-        poset = new Rotation_Poset(n, agents, 1, rots, null, null);
+        poset = new Rotation_Poset(agents, 1, rots, null, null);
         System.out.println("The graph " + (isDag(poset)?"is":"is not") + " a dag");
         System.out.print("FemaleOpt->MaleOpt: ");
         order = poset.topSort();
@@ -348,7 +348,7 @@ public class TestPoset
 
         smp = new GS_MaleOpt(8, agents);
         rots = new Rotations(8, agents, null, null);
-        poset = new Rotation_Poset(n, agents, 0, rots, null, null);
+        poset = new Rotation_Poset(agents, 0, rots, null, null);
         m = smp.match();
 
         System.out.println("Graph: " + poset);
@@ -365,7 +365,7 @@ public class TestPoset
         smp = new GS_MaleOpt(n, null, null);
         agents = smp.getAgents();
         rots = new Rotations(n, agents, null, null);    
-        poset = new Rotation_Poset(n, agents, 0, rots, null, null);
+        poset = new Rotation_Poset(agents, 0, rots, null, null);
         endTime = System.nanoTime();
         elapsedTime = endTime - startTime;
         time = elapsedTime / 1.0E09;
@@ -376,7 +376,7 @@ public class TestPoset
         smp = new GS_MaleOpt(n, null, null);
         agents = smp.getAgents();
         rots = new Rotations(n, agents, null, null);    
-        poset = new Rotation_Poset(n, agents, 0, rots, null, null);
+        poset = new Rotation_Poset(agents, 0, rots, null, null);
         endTime = System.nanoTime();
         elapsedTime = endTime - startTime;
         time = elapsedTime / 1.0E09;
@@ -387,7 +387,7 @@ public class TestPoset
         smp = new GS_MaleOpt(n, null, null);
         agents = smp.getAgents();
         rots = new Rotations(n, agents, null, null);    
-        poset = new Rotation_Poset(n, agents, 0, rots, null, null);
+        poset = new Rotation_Poset(agents, 0, rots, null, null);
         endTime = System.nanoTime();
         elapsedTime = endTime - startTime;
         time = elapsedTime / 1.0E09;
@@ -398,7 +398,7 @@ public class TestPoset
         smp = new GS_MaleOpt(n, null, null);
         agents = smp.getAgents();
         rots = new Rotations(n, agents, null, null);    
-        poset = new Rotation_Poset(n, agents, 0, rots, null, null);
+        poset = new Rotation_Poset(agents, 0, rots, null, null);
         endTime = System.nanoTime();
         elapsedTime = endTime - startTime;
         time = elapsedTime / 1.0E09;
@@ -409,7 +409,7 @@ public class TestPoset
         smp = new GS_MaleOpt(n, null, null);
         agents = smp.getAgents();
         rots = new Rotations(n, agents, null, null);    
-        poset = new Rotation_Poset(n, agents, 0, rots, null, null);
+        poset = new Rotation_Poset(agents, 0, rots, null, null);
         endTime = System.nanoTime();
         elapsedTime = endTime - startTime;
         time = elapsedTime / 1.0E09;

@@ -62,7 +62,7 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
         // Compute the rotation poset
         rots = new Rotations(n, agents, maleOptMatching, femaleOptMatching);
         this.rots_cnt = rots.count;
-        poset = new Rotation_Poset(n, agents, 0, rots, maleOptMatching, femaleOptMatching);
+        poset = new Rotation_Poset(agents, 0, rots, maleOptMatching, femaleOptMatching);
         rotations_topsort = poset.topSort();
         // Rename all indexes and data structures for rotations so that they are consistent with the topological sort
         poset.rename_ids(rotations_topsort);
@@ -205,6 +205,10 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
         verify.setRequired(false);
         options.addOption(verify);
 
+        Option benchmark = new Option("b", "benchmark", true, "perform a small benchmark");
+        benchmark.setRequired(false);
+        options.addOption(benchmark);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd = null;
@@ -229,37 +233,74 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
         if (cmd.hasOption("verify")) v = true;
         else v = false;
 
-        TopkEgalitarian smp = new TopkEgalitarian(n, menFile, womenFile, k);
-        Marriage matching = smp.match();
-        Metrics smpMetrics = new Metrics(smp, matching, getFinalName());
-        if (v) smpMetrics.perform_checks();  
-        smpMetrics.printPerformance();
-        Agent[][] agents = smp.getAgents();
-
-        for (int i = 2; i <= k; i++) 
+        if (!cmd.hasOption("benchmark"))
         {
-            matching = smp.get_next_match();
-            if (matching == null) break;
-            smpMetrics = new Metrics(smp, matching, getFinalName());
+            TopkEgalitarian smp = new TopkEgalitarian(n, menFile, womenFile, k);
+            Marriage matching = smp.match();
+            Metrics smpMetrics = new Metrics(smp, matching, getFinalName());
             if (v) smpMetrics.perform_checks();  
             smpMetrics.printPerformance();
+            Agent[][] agents = smp.getAgents();
+
+            for (int i = 2; i <= k; i++) 
+            {
+                matching = smp.get_next_match();
+                if (matching == null) break;
+                smpMetrics = new Metrics(smp, matching, getFinalName());
+                if (v) smpMetrics.perform_checks();  
+                smpMetrics.printPerformance();
+            }
+
+            // System.out.println("Running MinEgalitarian...");
+            // Abstract_SM_Algorithm smp_eg = new MinEgalitarian(n, agents);
+            // Marriage matching_eg = smp_eg.match();
+            // Metrics smpEgMetrics = new Metrics(smp_eg, matching_eg, getFinalName());
+            // if (v) smpEgMetrics.perform_checks();  
+            // smpEgMetrics.printPerformance();
+
+            // System.out.println("Running EnumerateAllSM...");
+            // EnumerateAllSM smp_all = new EnumerateAllSM(n, agents);
+            // for (Marriage matching_all : smp_all.allStableMatchings())
+            // {
+            //     Metrics smpMetrics_all = new Metrics(smp_all, matching_all, getFinalName());
+            //     if (v) smpMetrics_all.perform_checks();  
+            //     smpMetrics_all.printPerformance();
+            // }
         }
-
-        // System.out.println("Running MinEgalitarian...");
-        // Abstract_SM_Algorithm smp_eg = new MinEgalitarian(n, agents);
-        // Marriage matching_eg = smp_eg.match();
-        // Metrics smpEgMetrics = new Metrics(smp_eg, matching_eg, getFinalName());
-        // if (v) smpEgMetrics.perform_checks();  
-        // smpEgMetrics.printPerformance();
-
-        // System.out.println("Running EnumerateAllSM...");
-        // EnumerateAllSM smp_all = new EnumerateAllSM(n, agents);
-        // for (Marriage matching_all : smp_all.allStableMatchings())
-        // {
-        //     Metrics smpMetrics_all = new Metrics(smp_all, matching_all, getFinalName());
-        //     if (v) smpMetrics_all.perform_checks();  
-        //     smpMetrics_all.printPerformance();
-        // }
+        else
+        {
+            double[] times = new double[Integer.parseInt(cmd.getOptionValue("benchmark"))];
+            for (int j = 0; j < Integer.parseInt(cmd.getOptionValue("benchmark")); j++)
+            {
+                TopkEgalitarian smp = new TopkEgalitarian(n, menFile, womenFile, k);
+                Marriage matching = smp.match();
+                for (int i = 2; i <= k; i++) 
+                {
+                    matching = smp.get_next_match();
+                    if (matching == null) break;
+                }
+                times[j] = smp.getTime();
+            }
+            // Print the average and median times
+            double avg = 0;
+            for (int j = 0; j < Integer.parseInt(cmd.getOptionValue("benchmark")); j++)
+            {
+                avg += times[j];
+            }
+            avg /= Integer.parseInt(cmd.getOptionValue("benchmark"));
+            System.out.println("Average time: " + avg);
+            Arrays.sort(times);
+            double median = 0;
+            if (Integer.parseInt(cmd.getOptionValue("benchmark")) % 2 == 0)
+            {
+                median = (times[Integer.parseInt(cmd.getOptionValue("benchmark")) / 2] + times[Integer.parseInt(cmd.getOptionValue("benchmark")) / 2 - 1]) / 2;
+            }
+            else
+            {
+                median = times[Integer.parseInt(cmd.getOptionValue("benchmark")) / 2];
+            }
+            System.out.println("Median time: " + median);
+        }
     }
 
 }

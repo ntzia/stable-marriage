@@ -16,8 +16,6 @@ import cslab.ntua.gr.algorithms.GS_MaleOpt;
 
 public class Rotation_Poset
 {
-    private int n, count;
-    private Agent[][] agents;
     private ArrayList<Rotation> rotations;
     private Map<Rotation,List<Rotation>> neighbors, neighbors_reversed;
     // For the case of a poset with constraints: 0 -> excluded, 1 -> included, 2 -> unbound
@@ -27,41 +25,36 @@ public class Rotation_Poset
     // Use to immediately construct the digraph
     // side = 0 constructs the poset of men rotations (that worsen the men)
     // Matchings can be null if not yet available
-    public Rotation_Poset(int n, Agent[][] agents, int side, Rotations rotations, Marriage maleOptMatching, Marriage femaleOptMatching)
+    public Rotation_Poset(Agent[][] agents, int side, Rotations rotations, Marriage maleOptMatching, Marriage femaleOptMatching)
     {
-        this.n = n;
-        this.agents = agents;
         if (side == 0)
         {
             this.rotations = rotations.men_rotations;
-            construct_digraph_men(maleOptMatching, femaleOptMatching);
+            construct_digraph_men(maleOptMatching, femaleOptMatching, agents);
         } 
         else 
         {
             this.rotations = rotations.women_rotations;
-            construct_digraph_women(maleOptMatching, femaleOptMatching);
+            construct_digraph_women(maleOptMatching, femaleOptMatching, agents);
         }
-        this.count = rotations.count;
         // Possibly multi-graph, so remove duplicate edges (also removes self-loops)
         remove_duplicates();
         this.neighbors_reversed = reverse_graph();
     }
 
     // Use to construct the poset if the graph is already ready
-    public Rotation_Poset(int n, int rotation_cnt, ArrayList<Rotation> rotations, Agent[][] agents, Map<Rotation,List<Rotation>> neighbors, int[] constrained_rotations)
+    public Rotation_Poset(ArrayList<Rotation> rotations, Map<Rotation,List<Rotation>> neighbors, int[] constrained_rotations)
     {
-        this.n = n;
-        this.count = rotation_cnt;
-        this.agents = agents;
         this.rotations = rotations;
         this.neighbors = neighbors;
         this.constrained_rotations = constrained_rotations;
         this.neighbors_reversed = reverse_graph();
     }
 
-    private void construct_digraph_men(Marriage maleOptMatching, Marriage femaleOptMatching)
+    private void construct_digraph_men(Marriage maleOptMatching, Marriage femaleOptMatching, Agent[][] agents)
     {
         int man, woman, man1, next_mate_of_woman, index, latest_type1_label;
+        int n = agents[0].length;
 
         // Initialize
         neighbors = new HashMap<Rotation,List<Rotation>>();
@@ -124,9 +117,10 @@ public class Rotation_Poset
         return;
     }
 
-    private void construct_digraph_women(Marriage maleOptMatching, Marriage femaleOptMatching)
+    private void construct_digraph_women(Marriage maleOptMatching, Marriage femaleOptMatching, Agent[][] agents)
     {
         int man, woman, woman1, next_mate_of_man, index, latest_type1_label;
+        int n = agents[0].length;
 
         // Initialize
         neighbors = new HashMap<Rotation,List<Rotation>>();
@@ -194,7 +188,7 @@ public class Rotation_Poset
         // Carefully remove dupliate edges (and self-loops), so that time per edge is constant (edges are O(n^2))
         // Cant initialize from scratch seen array to false (that would be O(n^2) per node)
         // Use a stack to remember which nodes have been marked - only those have to be reverted to false after each node visit
-        boolean[] seen = new boolean[count];
+        boolean[] seen = new boolean[rotations.size()];
         List<Rotation> edges;
         Stack<Integer> used;
         Iterator<Rotation> it;
@@ -253,10 +247,10 @@ public class Rotation_Poset
      */
     private List<Rotation> do_dfs(Map<Rotation,List<Rotation>> dg, List<Rotation> starting_nodes)
     {
-        boolean[] visited = new boolean[count];
+        boolean[] visited = new boolean[rotations.size()];
         for (Rotation starting_node : starting_nodes) dfs(dg, starting_node, visited);
-        List<Rotation> res = new ArrayList<Rotation>();
-        for (int i = 0; i < count; i++)
+        List<Rotation> res = new ArrayList<Rotation>(rotations.size() / 10);
+        for (int i = 0; i < rotations.size(); i++)
         {
             if (visited[i]) res.add(rotations.get(i));
         }
@@ -320,13 +314,13 @@ public class Rotation_Poset
         // For an excluded rotation, we need to exclude all its ancestors
         // Note: we only need to do this for excluded rotations (and not the included ones) because of the topological sort
         // If we constrain a rotation then all its ancestors need to be constrained as well (either included or excluded=error)
-        excluded_list.addAll(cant_eliminate(excluded_list));
+        excluded_list = cant_eliminate(excluded_list);
         // Remove duplicates from the list representation of exclusions
-        excluded_list = excluded_list.stream().distinct().collect(Collectors.toList());
+        // excluded_list = excluded_list.stream().distinct().collect(Collectors.toList());
 
         // Update the constraints list and check for any violations
         // 0 -> excluded, 1 -> included, 2 -> unbound
-        int[] updated_constraints = new int[count];
+        int[] updated_constraints = new int[rotations.size()];
         Arrays.fill(updated_constraints, -1);
         for (Rotation r : excluded_list)
         {
@@ -344,7 +338,7 @@ public class Rotation_Poset
 
         // We are ready to allocate memory for a new graph
         Map<Rotation,List<Rotation>> new_neighbors = new HashMap<Rotation,List<Rotation>>();
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < rotations.size(); i++)
         {
             if (updated_constraints[i] <= 1) continue; // Included and excluded both result in deletion from the graph
             // Create a new list of neighbors for the rotation
@@ -358,7 +352,7 @@ public class Rotation_Poset
             new_neighbors.put(r, neighbors_list);
         }
 
-        return new Rotation_Poset(n, count, rotations, agents, new_neighbors, updated_constraints);
+        return new Rotation_Poset(rotations, new_neighbors, updated_constraints);
     }
 
     /**

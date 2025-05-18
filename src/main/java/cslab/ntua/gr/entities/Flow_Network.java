@@ -193,7 +193,7 @@ public class Flow_Network
         smp = new GS_MaleOpt(n, null, null);
         agents = smp.getAgents();
         Rotations rots = new Rotations(n, agents, null, null);
-        Rotation_Poset poset = new Rotation_Poset(n, agents, 0, rots, null, null);
+        Rotation_Poset poset = new Rotation_Poset(agents, 0, rots, null, null);
         Flow_Network g = new Flow_Network(poset);
         g.minCut();
     }

@@ -45,7 +45,7 @@ public class MinEgalitarian extends Abstract_SM_Algorithm
         // Compute the rotation poset
         Rotations rots = new Rotations(n, agents, maleOptMatching, femaleOptMatching);
         ArrayList<Rotation> rotations = rots.men_rotations;
-        Rotation_Poset poset = new Rotation_Poset(n, agents, 0, rots, maleOptMatching, femaleOptMatching);
+        Rotation_Poset poset = new Rotation_Poset(agents, 0, rots, maleOptMatching, femaleOptMatching);
         List<Rotation> topological_sorting = poset.topSort();
         // Compute the weight of the rotations
         for (Rotation r : rotations) r.compute_rotation_weight(agents);

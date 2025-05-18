@@ -58,7 +58,7 @@ public class EnumerateAllSM extends Abstract_SM_Algorithm
         femaleOptMatching = femaleOpt.match();
         // Compute the rotation poset
         rots = new Rotations(n, agents, maleOptMatching, femaleOptMatching);
-        poset = new Rotation_Poset(n, agents, 0, rots, maleOptMatching, femaleOptMatching);
+        poset = new Rotation_Poset(agents, 0, rots, maleOptMatching, femaleOptMatching);
         topological_sorting = poset.topSort();
 
         // Enumerate all closed subsets of the rotation poset

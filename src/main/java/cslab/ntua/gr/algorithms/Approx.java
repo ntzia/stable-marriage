@@ -68,7 +68,7 @@ public class Approx extends Abstract_SM_Algorithm
         ArrayList<Rotation> rotations;
         if (side == 0) rotations = rots.men_rotations;
         else rotations = rots.women_rotations;
-        Rotation_Poset poset = new Rotation_Poset(n, agents, side, rots, maleOptMatching, femaleOptMatching);
+        Rotation_Poset poset = new Rotation_Poset(agents, side, rots, maleOptMatching, femaleOptMatching);
         List<Rotation> topological_sorting = poset.topSort();
         // Partition rotations into two sets
         List<Rotation> r_large = new ArrayList<Rotation>();
