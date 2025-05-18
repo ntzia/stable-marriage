@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Collection;
+import java.util.Set;
+import java.util.HashSet;
 
 import cslab.ntua.gr.algorithms.Abstract_SM_Algorithm;
 import cslab.ntua.gr.algorithms.GS_MaleOpt;
@@ -110,10 +112,10 @@ public class Flow_Network
         }
     }
  
-    // Returns a list with the positive rotations of the minimum s-t cut
-    public List<Rotation> minCut() 
+    // Returns a set with the positive rotations of the minimum s-t cut
+    public Set<Rotation> minCut() 
     {
-        List<Rotation> res = new ArrayList<Rotation>();
+        Set<Rotation> res = new HashSet<Rotation>();
         Rotation u, v;
         Rotation s = src;
         Rotation t = dst;

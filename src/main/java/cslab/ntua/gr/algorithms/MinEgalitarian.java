@@ -2,6 +2,7 @@ package cslab.ntua.gr.algorithms;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -51,7 +52,7 @@ public class MinEgalitarian extends Abstract_SM_Algorithm
         for (Rotation r : rotations) r.compute_rotation_weight(agents);
         // Construct the flow network and find the positive rotations of the min-cut
         Flow_Network g = new Flow_Network(poset);
-        List<Rotation> not_selected = g.minCut();
+        Set<Rotation> not_selected = g.minCut();
         // The solution includes all other positive rotations
         boolean[] dont_select = new boolean[rots.count];
         for (Rotation r : not_selected) dont_select[r.id] = true;

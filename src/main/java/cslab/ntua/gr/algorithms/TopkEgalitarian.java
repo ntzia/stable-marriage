@@ -6,6 +6,8 @@ import java.util.PriorityQueue;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -23,6 +25,7 @@ import cslab.ntua.gr.entities.Rotation;
 import cslab.ntua.gr.entities.Rotation_Poset;
 import cslab.ntua.gr.entities.Rotations;
 import cslab.ntua.gr.tools.Metrics;
+
 
 public class TopkEgalitarian extends Abstract_SM_Algorithm{
 
@@ -70,21 +73,21 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
         for (Rotation r : rotations_topsort) r.compute_rotation_weight(agents);
         // Construct the flow network and find the positive rotations of the min-cut
         Flow_Network g = new Flow_Network(poset);
-        List<Rotation> not_selected = g.minCut();
+        Set<Rotation> not_selected = g.minCut();
         // The solution includes all other positive rotations
-        boolean[] dont_select = new boolean[rots_cnt];
-        for (Rotation r : not_selected) dont_select[r.id] = true;
         List<Rotation> solution = new ArrayList<Rotation>();
         
-        // Their predecessors have to be included as well
         for (Rotation r : rotations_topsort)
-            if (r.weight > 0 && !dont_select[r.id]) 
+        {
+            if (r.weight > 0 && !not_selected.contains(r)) 
                 solution.add(r);
+        }
+
+        // Their predecessors have to be included as well
         solution = poset.must_eliminate(solution);
 
         boolean[] solution_bits = new boolean[rots_cnt];
-        for (Rotation r : solution)
-                solution_bits[r.id] = true;
+        for (Rotation r : solution) solution_bits[r.id] = true;
 
         Marriage res = Rotations.eliminate_rotations(solution, maleOptMatching, 0, rotations_topsort, rots);
 
@@ -123,24 +126,28 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
 
             // Construct the flow network and find the positive rotations of the min-cut
             Flow_Network g = new Flow_Network(new_poset);
-            List<Rotation> not_selected = g.minCut();
+            Set<Rotation> not_selected = g.minCut();
             // The solution includes all other positive rotations (that are unbound)
-            boolean[] dont_select = new boolean[rots_cnt];
-            for (Rotation r : not_selected) dont_select[r.id] = true;
+            // The ones that are unbound are the ones that are not excluded AND their index is greater than i+1
             List<Rotation> new_solution = new ArrayList<Rotation>();
-            for (Rotation r : rotations_topsort)
-                // TODO: try to replace with bitset operations (are the constrained ones or the bound ones more?)
-                if (r.weight > 0 && !dont_select[r.id] && new_poset.constrained_rotations[r.id] == 2) 
+            // for (int j = positive_rotations.size() - 1; j >= 0; j--)
+            for (int j = i + 2; j < rotations_topsort.size(); j++)
+            {
+                Rotation r = rotations_topsort.get(j);
+                // TODO: could try to replace with bitset operations (are the constrained ones or the bound ones more?)
+                if (r.weight > 0 && !not_selected.contains(r) && new_poset.constrained_rotations[j]) 
                     new_solution.add(r);
+            }
+                
             // Their predecessors have to be included as well
             new_solution = new_poset.must_eliminate(new_solution);
+
             // Finally, add the rotations that are included by constraint
             for (int j = 0; j <= i + 1; j++)
                 if (new_solution_bits[j]) 
                     new_solution.add(rotations_topsort.get(j));
 
-            for (Rotation r : new_solution)
-                new_solution_bits[r.id] = true;
+            for (Rotation r : new_solution) new_solution_bits[r.id] = true;
 
             // System.out.println("New solution bits: " + Arrays.toString(new_solution_bits));
             

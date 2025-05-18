@@ -18,8 +18,8 @@ public class Rotation_Poset
 {
     private ArrayList<Rotation> rotations;
     private Map<Rotation,List<Rotation>> neighbors, neighbors_reversed;
-    // For the case of a poset with constraints: 0 -> excluded, 1 -> included, 2 -> unbound
-    public int[] constrained_rotations = null; 
+    // For the case of a poset with constraints: false -> excluded, true -> included or unbound
+    public boolean[] constrained_rotations = null; 
 
 
     // Use to immediately construct the digraph
@@ -43,7 +43,7 @@ public class Rotation_Poset
     }
 
     // Use to construct the poset if the graph is already ready
-    public Rotation_Poset(ArrayList<Rotation> rotations, Map<Rotation,List<Rotation>> neighbors, int[] constrained_rotations)
+    public Rotation_Poset(ArrayList<Rotation> rotations, Map<Rotation,List<Rotation>> neighbors, boolean[] constrained_rotations)
     {
         this.rotations = rotations;
         this.neighbors = neighbors;
@@ -233,28 +233,58 @@ public class Rotation_Poset
     }
 
     /**
-     * Recursive function for dfs search
-     */
-    private void dfs(Map<Rotation,List<Rotation>> dg, Rotation node, boolean[] visited)
-    {
-        if (visited[node.id]) return;
-        visited[node.id] = true;
-        for (Rotation neighbor : dg.get(node)) dfs(dg, neighbor, visited);
-    }
-
-    /**
      * Performs a dfs search and returns all visited nodes as a list
      */
     private List<Rotation> do_dfs(Map<Rotation,List<Rotation>> dg, List<Rotation> starting_nodes)
     {
         boolean[] visited = new boolean[rotations.size()];
-        for (Rotation starting_node : starting_nodes) dfs(dg, starting_node, visited);
+        Stack<Rotation> stack = new Stack<>();
+        for (Rotation starting_node : starting_nodes) {
+            if (!visited[starting_node.id]) {
+                stack.push(starting_node);
+                while (!stack.isEmpty()) {
+                    Rotation current = stack.pop();
+                    if (visited[current.id]) continue;
+                    visited[current.id] = true;
+                    for (Rotation neighbor : dg.get(current)) {
+                        if (!visited[neighbor.id]) {
+                            stack.push(neighbor);
+                        }
+                    }
+                }
+            }
+        }
         List<Rotation> res = new ArrayList<Rotation>(rotations.size() / 10);
         for (int i = 0; i < rotations.size(); i++)
         {
             if (visited[i]) res.add(rotations.get(i));
         }
         return res;
+    }
+
+    /**
+     * Performs a dfs search and returns all visited nodes as a boolean array
+     */
+    private boolean[] do_dfs_boolean(Map<Rotation,List<Rotation>> dg, List<Rotation> starting_nodes)
+    {
+        boolean[] visited = new boolean[rotations.size()];
+        Stack<Rotation> stack = new Stack<>();
+        for (Rotation starting_node : starting_nodes) {
+            if (!visited[starting_node.id]) {
+                stack.push(starting_node);
+                while (!stack.isEmpty()) {
+                    Rotation current = stack.pop();
+                    if (visited[current.id]) continue;
+                    visited[current.id] = true;
+                    for (Rotation neighbor : dg.get(current)) {
+                        if (!visited[neighbor.id]) {
+                            stack.push(neighbor);
+                        }
+                    }
+                }
+            }
+        }
+        return visited;
     }
 
     /**
@@ -314,40 +344,39 @@ public class Rotation_Poset
         // For an excluded rotation, we need to exclude all its ancestors
         // Note: we only need to do this for excluded rotations (and not the included ones) because of the topological sort
         // If we constrain a rotation then all its ancestors need to be constrained as well (either included or excluded=error)
-        excluded_list = cant_eliminate(excluded_list);
+        boolean[] updated_constraints = cant_eliminate_boolean(excluded_list);
         // Remove duplicates from the list representation of exclusions
         // excluded_list = excluded_list.stream().distinct().collect(Collectors.toList());
 
         // Update the constraints list and check for any violations
-        // 0 -> excluded, 1 -> included, 2 -> unbound
-        int[] updated_constraints = new int[rotations.size()];
-        Arrays.fill(updated_constraints, -1);
-        for (Rotation r : excluded_list)
-        {
-            if (constraints.size() > r.id)
-                if (constraints.get(r.id)) 
-                    return null; // Violation
-            updated_constraints[r.id] = 0;
-        }
-        for (int i = 0; i < constraints.size(); i++)
-            if (constraints.get(i)) 
-                updated_constraints[i] = 1;
         for (int i = 0; i < updated_constraints.length; i++)
-            if (updated_constraints[i] == -1) 
-                updated_constraints[i] = 2; // Unbound
+        {
+            if (updated_constraints[i]) 
+            {
+                // Rotation was visited, thus should be excluded
+                if (constraints.size() > i)
+                    if (constraints.get(i)) 
+                        return null; // Violation
+                updated_constraints[i] = false; 
+            }
+            else 
+            {
+                updated_constraints[i] = true; // True means either included by force or unbound
+            }
+        }
 
         // We are ready to allocate memory for a new graph
         Map<Rotation,List<Rotation>> new_neighbors = new HashMap<Rotation,List<Rotation>>();
-        for (int i = 0; i < rotations.size(); i++)
+        for (int i = constraints.size(); i < rotations.size(); i++) // Included and excluded both result in deletion from the graph, so start with originally unconstrained
         {
-            if (updated_constraints[i] <= 1) continue; // Included and excluded both result in deletion from the graph
+            if (!updated_constraints[i]) continue; // Excluded results in deletion from the graph (can't be included here)
             // Create a new list of neighbors for the rotation
             Rotation r = rotations.get(i);
             List<Rotation> neighbors_list = new LinkedList<Rotation>();
             for (Rotation neighbor : neighbors.get(r))
             {
                 // Check if the neighbor is part of the graph
-                if (updated_constraints[neighbor.id] > 1) neighbors_list.add(neighbor);
+                if (neighbor.id >= constraints.size() && updated_constraints[neighbor.id]) neighbors_list.add(neighbor);
             }
             new_neighbors.put(r, neighbors_list);
         }
@@ -362,6 +391,15 @@ public class Rotation_Poset
     public List<Rotation> cant_eliminate(List<Rotation> r)
     {
         return do_dfs(this.neighbors, r);
+    }
+
+    /**
+     * Given a chosen list of rotations that will not be eliminated, 
+     * outputs all the rotations that must not be eliminated
+     */
+    public boolean[] cant_eliminate_boolean(List<Rotation> r)
+    {
+        return do_dfs_boolean(this.neighbors, r);
     }
 
     /**
