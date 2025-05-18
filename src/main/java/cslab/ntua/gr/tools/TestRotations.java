@@ -333,8 +333,17 @@ public class TestRotations
         rot_test52.find_women_rotations(null, null);
         for (Rotation rot : rot_test51.women_rotations)
         {
-            if (!rot_test52.women_rotations.contains(rot))
+            boolean found = false;
+            for (Rotation r : rot_test52.women_rotations)
             {
+                if (rot.rotates_the_same_agents_as(r))
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {                
                 System.err.println("Error: Rotation obtained by shifting a rotation of men can not be found in rotations obtained by breakmarriages!");
                 System.exit(1);
             }

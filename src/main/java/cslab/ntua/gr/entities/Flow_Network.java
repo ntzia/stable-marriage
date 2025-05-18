@@ -40,8 +40,8 @@ public class Flow_Network
             for (Rotation to : edges.get(from)) new_edges.put(to, Integer.MAX_VALUE);
         } 
         // Add source and destination
-        src = new Rotation(rotations.size());
-        dst = new Rotation(rotations.size() + 1);
+        src = new Rotation(-1);
+        dst = new Rotation(-2);
         graph.put(src, new HashMap<Rotation,Integer>());
         graph.put(dst, new HashMap<Rotation,Integer>());
         // Add edges according to weight of rotations
@@ -161,7 +161,7 @@ public class Flow_Network
             {
                 if (isVisited.get(i) && !isVisited.get(j))
                 {
-                    if (j.id == size - 1) res.add(i);
+                    if (j.id == -2) res.add(i);
                 }
             }
         }

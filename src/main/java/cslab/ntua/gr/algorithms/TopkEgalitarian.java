@@ -129,14 +129,15 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
             for (Rotation r : not_selected) dont_select[r.id] = true;
             List<Rotation> new_solution = new ArrayList<Rotation>();
             for (Rotation r : rotations_topsort)
+                // TODO: try to replace with bitset operations (are the constrained ones or the bound ones more?)
                 if (r.weight > 0 && !dont_select[r.id] && new_poset.constrained_rotations[r.id] == 2) 
                     new_solution.add(r);
             // Their predecessors have to be included as well
             new_solution = new_poset.must_eliminate(new_solution);
             // Finally, add the rotations that are included by constraint
-            for (Rotation r : rotations_topsort)
-                if (new_poset.constrained_rotations[r.id] == 1) 
-                    new_solution.add(r);
+            for (int j = 0; j <= i + 1; j++)
+                if (new_solution_bits[j]) 
+                    new_solution.add(rotations_topsort.get(j));
 
             for (Rotation r : new_solution)
                 new_solution_bits[r.id] = true;
@@ -153,7 +154,7 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
         
         long endTime = System.nanoTime();
         long elapsedTime = endTime - startTime;
-        time = elapsedTime / 1.0E09;
+        time += elapsedTime / 1.0E09;
 
         if (last_returned == null) return null;
         else return last_returned.solution;
@@ -244,22 +245,21 @@ public class TopkEgalitarian extends Abstract_SM_Algorithm{
             smpMetrics.printPerformance();
         }
 
-        // Try the existing MinEgalitarian algorithm
-        System.out.println("Running MinEgalitarian...");
-        Abstract_SM_Algorithm smp_eg = new MinEgalitarian(n, agents);
-        Marriage matching_eg = smp_eg.match();
-        Metrics smpEgMetrics = new Metrics(smp_eg, matching_eg, getFinalName());
-        if (v) smpEgMetrics.perform_checks();  
-        smpEgMetrics.printPerformance();
+        // System.out.println("Running MinEgalitarian...");
+        // Abstract_SM_Algorithm smp_eg = new MinEgalitarian(n, agents);
+        // Marriage matching_eg = smp_eg.match();
+        // Metrics smpEgMetrics = new Metrics(smp_eg, matching_eg, getFinalName());
+        // if (v) smpEgMetrics.perform_checks();  
+        // smpEgMetrics.printPerformance();
 
-        System.out.println("Running EnumerateAllSM...");
-        EnumerateAllSM smp_all = new EnumerateAllSM(n, agents);
-        for (Marriage matching_all : smp_all.allStableMatchings())
-        {
-            Metrics smpMetrics_all = new Metrics(smp_all, matching_all, getFinalName());
-            if (v) smpMetrics_all.perform_checks();  
-            smpMetrics_all.printPerformance();
-        }
+        // System.out.println("Running EnumerateAllSM...");
+        // EnumerateAllSM smp_all = new EnumerateAllSM(n, agents);
+        // for (Marriage matching_all : smp_all.allStableMatchings())
+        // {
+        //     Metrics smpMetrics_all = new Metrics(smp_all, matching_all, getFinalName());
+        //     if (v) smpMetrics_all.perform_checks();  
+        //     smpMetrics_all.printPerformance();
+        // }
     }
 
 }

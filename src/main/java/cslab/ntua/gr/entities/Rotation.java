@@ -82,9 +82,9 @@ public class Rotation
         return women.contains(w);
     }
 
-    // TODO: this is slow when rotations are inserted in a hashmap
-    @Override
-    public boolean equals(Object obj) 
+    // @Override
+    // public boolean equals(Object obj) 
+    public boolean rotates_the_same_agents_as(Object obj) 
     {
         if (obj == null) return false;
         if (!Rotation.class.isAssignableFrom(obj.getClass())) return false;
@@ -101,6 +101,15 @@ public class Rotation
             index_in_other = getNextIndex(index_in_other);
         }
         return true;
+    }
+
+    @Override
+    public boolean equals(Object obj) 
+    {
+        if (obj == null) return false;
+        if (!Rotation.class.isAssignableFrom(obj.getClass())) return false;
+        Rotation other = (Rotation) obj;
+        return this.id == other.id;
     }
 
     public String toString2()
